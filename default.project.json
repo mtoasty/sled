@@ -5,7 +5,8 @@
 
     "ReplicatedStorage": {
       "Modules": {
-        "$path": "src/shared/Modules"
+        "$path": "src/shared/Modules",
+        "$ignoreUnknownInstances": true
       }
     },
 

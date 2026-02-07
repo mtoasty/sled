@@ -1,10 +1,10 @@
 local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
 local ServerStorage : ServerStorage = game:GetService("ServerStorage");
 
-local raceID : string = script.Parent.Parent.Parent.Parent.Name;
+local raceID : string = script.Parent.raceID.Value;
 
 
-local TimeTrialInfos : table = require(ReplicatedStorage:WaitForChild("Shared").Modules.TimeTrialInfos);
+local TimeTrialInfos : table = require(ReplicatedStorage:WaitForChild("Modules").TimeTrialInfos);
 local thisTrialInfo : table = TimeTrialInfos[raceID];
 
 local raceOpenEvent : RemoteEvent =  ReplicatedStorage:WaitForChild("RemoteEvents").RaceOpen;
@@ -21,11 +21,7 @@ function onPromptTriggered(player : Player) : nil
         ["lbData"] = lbData
     }
 
-    local raceResponce : boolean = raceOpenEvent:FireClient(player, raceData);
-
-    if (raceResponce == true) then
-        -- Player accepted race, start it
-    end
+    raceOpenEvent:FireClient(player, raceData);
 end
 
 script.Parent.ProximityPrompt.Triggered:Connect(onPromptTriggered);

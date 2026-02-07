@@ -10,7 +10,7 @@ local ttLbTemplate : Frame = raceUI.TimeTrial.Leaderboard.PlaceTemplate;
 local emptyPlayerIcon : string = "rbxassetid://6034268008";
 
 local function formatTime(t : number) : string
-    if t == math.huge then
+    if t == 99999 or t == math.huge or t == -1 then
         return "-:--";
     end
 
@@ -29,6 +29,9 @@ end
 ]]--
 
 
+
+local lastOpenedTT : string = "";
+local lastOpenedTime : number = time() - 60;
 
 local function buildLbFrame(lbEntry : table, place : number) : Frame
     local newFrame : Frame = ttLbTemplate:Clone();
@@ -53,7 +56,7 @@ local function buildLbFrame(lbEntry : table, place : number) : Frame
     return newFrame;
 end
 
-local function loadUI(raceData : table) : boolean
+local function loadUI(raceData : table) : nil
 
     --[[
 
@@ -66,9 +69,19 @@ local function loadUI(raceData : table) : boolean
     
     ]]
 
+    --| Don't send new requests if the info has no chance of changing (and prevents spamming)
+
+    if (lastOpenedTT == raceData.raceID and time() - lastOpenedTime < 60) then
+        raceUI.Visible = true;
+        return;
+    end
+
+    lastOpenedTT = raceData.raceID;
+    lastOpenedTime = time();
+
     --| Clear ui first
 
-    for _, child : Frame in ipairs(ttInfoPage.Leaderboard.Container:GetChildren()) do
+    for _, child : Frame in ipairs(raceUI.TimeTrial.Leaderboard.Container:GetChildren()) do
         child:Destroy();
     end
 
