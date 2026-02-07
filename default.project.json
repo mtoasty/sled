@@ -1,0 +1,55 @@
+{
+  "name": "sled",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+
+    },
+
+    "ServerScriptService": {
+      "Admin": {
+        "$path": "src/server/Admin"
+      },
+      "Core": {
+        "$path": "src/server/Core"
+      },
+      "Datastore": {
+        "$path": "src/server/Datastore"
+      },
+      "Game": {
+        "$path": "src/server/Game"
+      },
+      "Lighting": {
+        "$path": "src/server/Lighting"
+      },
+      "Sleds": {
+        "$path": "src/server/Sleds"
+      }
+    },
+
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+
+    "Workspace": {
+
+    },
+
+    "Lighting": {
+      "$properties": {
+        "Technology": "Future"
+      }
+    },
+
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}
