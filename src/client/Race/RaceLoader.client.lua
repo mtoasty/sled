@@ -10,7 +10,7 @@ local ttLbTemplate : Frame = raceUI.TimeTrial.Leaderboard.PlaceTemplate;
 local emptyPlayerIcon : string = "rbxassetid://6034268008";
 
 local function formatTime(t : number) : string
-    if t == 99999 or t == math.huge or t == -1 then
+    if t == 99999 then
         return "-:--";
     end
 
@@ -25,6 +25,8 @@ end
 --[[
 
 * Time Trial
+
+TODO: maybe some error handling if the server fails to send data? (timeout after like 5 seconds and show an error message on loading screen or something)
 
 ]]--
 
