@@ -2,7 +2,8 @@ local TimeTrialInfos = {
     ["cupid"] = {
         ["Name"] = "Cupid's Line",
         ["Difficulty"] = 1.5,
-        ["DifficultyRating"] = "Very Easy",
+        ["DifficultyRating"] = "(Very Easy)",
+        ["Route"] = "Stereo Love > Modern Love",
 
         ["Times"] = {
             ["Gold"] = 30.0,
@@ -15,7 +16,8 @@ local TimeTrialInfos = {
     ["mixpeed"] = {
         ["Name"] = "MIXPEED ACTION",
         ["Difficulty"] = 8,
-        ["DifficultyRating"] = "Hard",
+        ["DifficultyRating"] = "(Hard)",
+        ["Route"] = "Villain Virus",
 
         ["Times"] = {
             ["Gold"] = 21.5,
@@ -28,7 +30,8 @@ local TimeTrialInfos = {
     ["pure"] = {
         ["Name"] = "Pure Mud",
         ["Difficulty"] = 5.5,
-        ["DifficultyRating"] = "Intermediate",
+        ["DifficultyRating"] = "(Intermediate)",
+        ["Route"] = "God Crack > Modern Love",
 
         ["Times"] = {
             ["Gold"] = 17.5,
@@ -41,7 +44,8 @@ local TimeTrialInfos = {
     ["wzrd"] = {
         ["Name"] = "King WZRD",
         ["Difficulty"] = 10,
-        ["DifficultyRating"] = "Extreme",
+        ["DifficultyRating"] = "(Extreme)",
+        ["Route"] = "Cold Blooded > Ether > YFWAFTO",
 
         ["Times"] = {
             ["Gold"] = 65.0,
@@ -54,7 +58,8 @@ local TimeTrialInfos = {
     ["forever"] = {
         ["Name"] = "Forever",
         ["Difficulty"] = 6,
-        ["DifficultyRating"] = "Difficult",
+        ["DifficultyRating"] = "(Difficult)",
+        ["Route"] = "2007",
 
         ["Times"] = {
             ["Gold"] = 200,
