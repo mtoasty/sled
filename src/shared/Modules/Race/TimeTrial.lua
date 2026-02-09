@@ -49,9 +49,7 @@ function TimeTrial:RevealNextCheckpoint() : nil
     checkpointEvent:FireClient(self.Player, self.nextCheckpoint);
 end
 
-function TimeTrial:Start() : nil
-    self.timing = true;
-
+function TimeTrial:EnableEndEventListeners() : nil
     self.character:FindFirstChildOfClass("Humanoid").Seated:Connect(function(active : boolean) : nil
         if active == false then
             self:Abort();
@@ -67,6 +65,11 @@ function TimeTrial:Start() : nil
             self:Abort();
         end
     end);
+end
+
+function TimeTrial:Start() : nil
+    self.timing = true;
+    print("timing: " .. tostring(self.timing));
 
     while self.timing do
         self:RevealNextCheckpoint();

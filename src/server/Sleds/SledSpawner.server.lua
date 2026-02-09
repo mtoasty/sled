@@ -9,7 +9,12 @@ local function spawnSled(player : Player, nameOfSled : string) : nil
 	local curSled = workspace:FindFirstChild(player.Name.."'s sled");
 
 	if curSled then
+		local seatWeld : WeldConstraint = curSled.Components:FindFirstChildOfClass("VehicleSeat"):FindFirstChild("SeatWeld");
+		if seatWeld then
+			seatWeld:Destroy();
+		end
 		curSled:Destroy();
+		task.wait(0.1);
 	end
 
 	local newSled = ServerStorage.Sleds:FindFirstChild(nameOfSled):Clone();

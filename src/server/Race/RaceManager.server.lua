@@ -32,10 +32,13 @@ local function beginTimeTrial(player : Player, raceID : string) : nil
     newTimeTrial.event.Event:Connect(function(eventType : string) : nil
         if eventType == "FINISH" then
             --| Handle finish
+            print("FINISH")
             timeTrialComplete();
         elseif eventType == "LIMIT_REACHED" then
+            print("LIMIT_REACHED")
             --| Handle limit reached
         elseif eventType == "ABORTED" then
+            print("ABORTED");
             --| Handle aborted
         end
     end);
@@ -63,7 +66,8 @@ local function beginTimeTrial(player : Player, raceID : string) : nil
     newSled.Components.VehicleSeat.Anchored = true;
     player.Character.HumanoidRootPart.Anchored = false;
 
-    print("Counting down");
+    newTimeTrial:EnableEndEventListeners();
+
     for i = 3, 1, -1 do
         stopwatchEvent:FireClient(player, "COUNTDOWN", i);
         task.wait(1);

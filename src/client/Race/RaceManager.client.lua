@@ -23,7 +23,7 @@ end
 
 --[[
 
-* Time Trial
+* Time Trial UI
 
 TODO: maybe some error handling if the server fails to send data? (timeout after like 5 seconds and show an error message on loading screen or something)
 
@@ -111,17 +111,20 @@ raceOpenEvent.OnClientEvent:Connect(loadUI);
 
 --[[
 
+* Multiplayer UI
+
+]]
+
+
+
+
+
+--[[
+
 * Primary Buttons
 
 ]]--
 
-
-
-local function timeTrialStart() : nil
-    -- TODO: Fire server to start
-end
-
-ttInfoPage.Start.MouseButton1Click:Connect(timeTrialStart);
 
 
 local function closeMenu() : nil
@@ -198,7 +201,6 @@ local function raceStart() : nil
 end
 
 local function raceInit(raceID : string, party : {Player}?) : nil
-    print("Client initializing UI")
     raceUI.Visible = false;
     checkpointFolder = workspace:WaitForChild("TimeTrials"):FindFirstChild(raceID).Checkpoints;
 
@@ -209,13 +211,13 @@ local function raceInit(raceID : string, party : {Player}?) : nil
     TweenService:Create(
         raceHUD.Stopwatch,
         baseTweenInfo,
-        {["TextTransparency"] = 0.25, ["BackgroundTransparency"] = 0}
+        {["TextTransparency"] = 0, ["BackgroundTransparency"] = 0.25}
     ):Play();
 
     TweenService:Create(
         raceHUD.CheckpointProgress,
         baseTweenInfo,
-        {["TextTransparency"] = 0.25, ["BackgroundTransparency"] = 0}
+        {["TextTransparency"] = 0, ["BackgroundTransparency"] = 0.25}
     ):Play();
 
     TweenService:Create(
@@ -275,7 +277,6 @@ end
 
 
 ttStartButton.MouseButton1Click:Connect(function() : nil
-    print("Client pressed start time trial for " .. lastOpenedTT)
     startEvent:FireServer(lastOpenedTT);
 end);
 
