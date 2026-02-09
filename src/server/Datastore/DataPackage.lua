@@ -138,7 +138,7 @@ function DataPackage:ToInstTree() : Folder
                         local newInst : Color3Value = Instance.new("Color3Value");
                         newInst.Parent = root;
                         newInst.Name = index;
-                        newInst.Value = Color3.new(split[1], split[2], split[3]);
+                        newInst.Value = Color3.fromRGB(split[1], split[2], split[3]);
                         continue;
                     end
                 end
