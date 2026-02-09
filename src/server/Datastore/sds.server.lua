@@ -171,6 +171,7 @@ function savePlayerDataAsync(userId : number, data : table) : nil
     --| Save data
     print("Trying to save " .. userId .. "s data ");
     sds:UpdateAsync(userId, function(oldData : table) : table
+        -- * Could optimize this with more efficient callback?
         return data;
     end);
 end

@@ -2,44 +2,7 @@ local DataPackage = {};
 DataPackage.__index = DataPackage;
 
 
--- * IMPORTANT: Write to type tree and constructor when modifying data table
-
-type DataPackage = {
-    ["playerstats"] : {
-        ["level"] : number,
-        ["xp"] : number
-    },
-    ["racestats"] : {
-        ["cupid"] : number,
-        ["mixpeed"] : number,
-        ["pure"] : number,
-        ["wzrd"] : number,
-        ["forever"] : number
-    },
-    ["preferences"] : {
-
-    },
-    ["sledConfig"] : {
-        ["sledType"] : string,
-        ["cosmetics"] : {
-            ["currents"] : boolean
-        },
-        ["sledColour"] : "\\crgb6, 74, 157",
-        ["steerAngle"] : number,
-        ["steerSpeed"] : number,
-        ["rollMult"] : number,
-        ["pitchMult"] : number,
-        ["yawStrength"] : number,
-        ["gyroStrength"] : number
-    },
-    ["moons"] : {
-
-    },
-    ["onLoadNotification"] : boolean,
-    ["ToInstTree"] : () -> Folder,
-    ["RestoreMissing"] : () -> nil
-}
-
+type DataPackage = typeof(DataPackage);
 
 --| Constructors:
 
@@ -93,7 +56,8 @@ function DataPackage.fromInstTree(instTree : Folder) : DataPackage
                 copyFolderToTree(inst, tree[name]);
             elseif (inst:IsA("Color3Value")) then
                 --| Encode colours
-                tree[name] = "\\crgb" .. tostring(inst.Value);
+                local colour = inst.Value
+                tree[name] = "\\crgb" .. tostring(math.round(colour.R * 255)) .. "," .. tostring(math.round(colour.G * 255)) .. "," .. tostring(math.round(colour.B * 255));
             else
                 tree[name] = inst.Value;
             end

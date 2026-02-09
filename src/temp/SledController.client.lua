@@ -24,7 +24,7 @@ local components : Folder | nil;
 local heartbeatConnection : RBXScriptConnection | nil;
 local cameraConnection : RBXScriptConnection | nil;
 
-local playerSledConfig : Folder = LocalPlayer.Data.sledConfig;
+local playerSledConfig : Folder = LocalPlayer:WaitForChild("Data").sledConfig;
 local sledSettings = {
 	["steerAngle"] = playerSledConfig.steerAngle,
 	["steerSpeed"] = playerSledConfig.steerSpeed, --| Clamp between 0 and 1
@@ -339,7 +339,7 @@ end
 
 function enableSledControls(sledModel : Model) : nil
 	--| Get components of the sled (important parts)
-	components = sledModel.Components;
+	components = sledModel:WaitForChild("Components");
 
     --| Physics init
 	heartbeatConnection = RunService.Heartbeat:Connect(updateMovement);
@@ -355,7 +355,7 @@ function enableSledControls(sledModel : Model) : nil
 	--| Sled colouring
 	for _, inst : Instance in pairs(sledModel.SledModel:GetChildren()) do
 		if (inst:GetAttribute("Colourable") == true) then
-			inst.Color = playerSledConfig.sledColour.Value
+			inst.Color = playerSledConfig.sledColour.Value;
 		end
 	end
 end
@@ -372,6 +372,7 @@ end
 
 --| Enable / disable sled on seated change
 function onSeated(active : boolean, seatPart : BasePart) : nil
+	print("SEATed")
 	if (active) then
 		if (seatPart:GetAttribute("Sled")) then
 			print("Seated in sled")
