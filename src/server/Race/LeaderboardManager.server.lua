@@ -4,7 +4,7 @@ local DataStoreService : DataStoreService = game:GetService("DataStoreService");
 local Players : Players = game:GetService("Players");
 local UserService : UserService = game:GetService("UserService");
 
-local TimeTrialInfos : table = require(ReplicatedStorage:WaitForChild("Modules").TimeTrialInfos);
+local TimeTrialInfos : table = require(ReplicatedStorage:WaitForChild("Modules").Race.TimeTrialInfos);
 
 local fetchCooldown : number = 60;
 local emptyPlayerIcon : string = "rbxassetid://6034268008";
@@ -68,7 +68,7 @@ local function invoked(raceID : string) : table
         datastores[raceID] = datastores[raceID]:GetSortedAsync(isAscending, pageSize):GetCurrentPage();
     end
 
-    return datastores[raceID];
+    return packageLbData(datastores[raceID]);
 end
 
 ServerStorage.ServerEvents.LeaderboardFetch.OnInvoke = invoked;

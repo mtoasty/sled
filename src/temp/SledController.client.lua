@@ -374,6 +374,7 @@ end
 function onSeated(active : boolean, seatPart : BasePart) : nil
 	if (active) then
 		if (seatPart:GetAttribute("Sled")) then
+			print("Seated in sled")
 			enableSledControls(seatPart.Parent.Parent);
 		end
 	else

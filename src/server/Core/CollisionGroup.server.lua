@@ -2,8 +2,10 @@ local PhysicsService = game:GetService("PhysicsService");
 local Players = game:GetService("Players");
 
 PhysicsService:RegisterCollisionGroup("Characters");
+PhysicsService:RegisterCollisionGroup("Sleds");
 PhysicsService:CollisionGroupSetCollidable("Characters", "Characters", false);
 PhysicsService:CollisionGroupSetCollidable("Characters", "Sleds", false);
+PhysicsService:CollisionGroupSetCollidable("Sleds", "Sleds", false);
 
 local function onDescendantAdded(descendant: Instance)
 	if descendant:IsA("BasePart") then
