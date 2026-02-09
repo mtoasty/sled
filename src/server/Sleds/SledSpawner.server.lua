@@ -1,29 +1,24 @@
-game.ReplicatedStorage.RemoteEvents:WaitForChild("SpawnSled").OnServerEvent:Connect(function(player: Player, nameOfSled: string)
-	local plr = game.Workspace:FindFirstChild(player.Name);
-	local cursled;
+local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
+local ServerStorage : ServerStorage = game:GetService("ServerStorage");
 
-	local success, err = pcall(function()
-		cursled = game.Workspace:FindFirstChild(player.Name.."'s sled");
-	end);
+local clientSledSpawnEvent : RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").SpawnSled;
+local serverSledSpawnEvent : BindableEvent = ServerStorage:WaitForChild("ServerEvents").SpawnSled;
 
-	if success and cursled then
-		cursled:Destroy();
+local function spawnSled(player : Player, nameOfSled : string) : nil
+	local character = player.Character or player.CharacterAdded:Wait();
+	local curSled = workspace:FindFirstChild(player.Name.."'s sled");
+
+	if curSled then
+		curSled:Destroy();
 	end
 
-	local sled = game.ServerStorage.Sleds:FindFirstChild(nameOfSled):Clone();
-	sled:PivotTo((CFrame.new(plr.HumanoidRootPart.CFrame.Position+(plr.HumanoidRootPart.CFrame.LookVector),plr.HumanoidRootPart.Position)) * CFrame.Angles(0, math.rad(180), 0));
-	sled.Parent = workspace;
-	sled:MakeJoints();
-	sled.Name = player.Name.."'s sled";
-	local seat = sled:WaitForChild("VehicleSeat", 5) or sled:WaitForChild("Components", 2.5):WaitForChild("Seat", 2.5);
-	if seat then
-		seat.Anchored = true;
-		task.wait(0.5);
-		seat.Anchored = false;
+	local newSled = ServerStorage.Sleds:FindFirstChild(nameOfSled):Clone();
 
-		task.wait(5);
-		if seat.Occupant == nil then
-			sled:Destroy();
-		end
-	end
-end);
+	newSled.Parent = workspace;
+	newSled.Name = player.Name .. "'s sled";
+	newSled:PivotTo(character.HumanoidRootPart.CFrame);
+	newSled.Components.VehicleSeat:Sit(character:FindFirstChildOfClass("Humanoid"));
+end
+
+clientSledSpawnEvent.OnServerEvent:Connect(spawnSled);
+serverSledSpawnEvent.Event:Connect(spawnSled);
