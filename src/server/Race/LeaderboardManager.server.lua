@@ -11,6 +11,7 @@ local emptyPlayerIcon : string = "rbxassetid://6034268008";
 
 local fetchTimes : {number} = {};
 local datastores : {OrderedDataStore} = {};
+local cachedData : {DataStorePages} = {};
 
 for key : string, _ in pairs(TimeTrialInfos) do
     fetchTimes[key] = time() - fetchCooldown;
@@ -57,7 +58,11 @@ local function packageLbData(lbData : {table}) : table
 end
 
 
-local function invoked(raceID : string) : table
+local function invoked(raceID : string, raw : boolean?) : table
+    if raw then
+        return cachedData[raceID];
+    end
+
     local timeSinceLastFetch : number = time() - fetchTimes[raceID];
     if (timeSinceLastFetch >= fetchCooldown) then
         fetchTimes[raceID] = time();
@@ -65,10 +70,10 @@ local function invoked(raceID : string) : table
         local isAscending : boolean = false;
         local pageSize : number = 10;
 
-        datastores[raceID] = datastores[raceID]:GetSortedAsync(isAscending, pageSize):GetCurrentPage();
+        cachedData[raceID] = datastores[raceID]:GetSortedAsync(isAscending, pageSize):GetCurrentPage();
     end
 
-    return packageLbData(datastores[raceID]);
+    return packageLbData(cachedData[raceID]);
 end
 
 ServerStorage.ServerEvents.LeaderboardFetch.OnInvoke = invoked;

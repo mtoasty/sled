@@ -217,7 +217,7 @@ function updateParticles(deltaTime : number, velocity : number) : nil
 
 	--| If big enough respray is detected create a new emitter
 	if ((not sprayIncreasing) and (deltaSpray > math.pi / 8)) then
-		print("new spray");
+		--print("new spray");
 		local newEmitter1 = components.ParticleParts.SprayEmitter1:Clone();
 		local newEmitter2 = components.ParticleParts.SprayEmitter2:Clone();
 
@@ -372,10 +372,11 @@ end
 
 --| Enable / disable sled on seated change
 function onSeated(active : boolean, seatPart : BasePart) : nil
-	print("SEATed")
+
 	if (active) then
+		repeat task.wait() until seatPart;
 		if (seatPart:GetAttribute("Sled")) then
-			print("Seated in sled")
+			--print("Seated in sled")
 			enableSledControls(seatPart.Parent.Parent);
 		end
 	else

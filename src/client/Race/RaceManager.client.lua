@@ -1,5 +1,9 @@
 local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
 local TweenService : TweenService = game:GetService("TweenService");
+local Players : Players = game:GetService("Players");
+local EasyVisuals = require(ReplicatedStorage.Modules.UI.EasyVisuals);
+
+local player : Player = Players.LocalPlayer;
 
 local raceOpenEvent : RemoteEvent =  ReplicatedStorage:WaitForChild("RemoteEvents").Race.RaceOpen;
 local raceUI : Frame = script.Parent;
@@ -9,14 +13,14 @@ local ttLbTemplate : Frame = raceUI.TimeTrial.Leaderboard.PlaceTemplate;
 local emptyPlayerIcon : string = "rbxassetid://6034268008";
 
 local function formatTime(t : number) : string
-    if t == 99999 then
+    if t == 99999 or t == math.huge then
         return "-:--";
     end
 
     local minutes = math.floor(t / 60);
     local seconds = math.floor(t % 60);
-    local tenths = math.floor((t - math.floor(t)) * 10);
-    return string.format("%d:%02d.%d", minutes, seconds, tenths);
+    local ms = math.floor((t - math.floor(t)) * 1000);
+    return string.format("%d:%02d.%d", minutes, seconds, ms);
 end
 
 
@@ -148,10 +152,32 @@ local ttStartButton = ttInfoPage.Start;
 local startEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.Start;
 local checkpointEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.Checkpoint;
 local stopwatchEvent : UnreliableRemoteEvent = ReplicatedStorage.RemoteEvents.Race.Stopwatch;
+local statusChangeEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.StatusChange;
+
 local checkpointFolder : Folder = nil;
+local returnToStartPart : BasePart = nil;
 
 local raceHUD : Frame = script.Parent.Parent.RaceHUD;
 local buttonsHUD : Frame = script.Parent.Parent.Buttons;
+
+local ttFinishHUD : Frame = raceHUD.TimeTrialResults;
+local bestGradient : table = nil;
+local newBestColorSequence = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+    ColorSequenceKeypoint.new(0.25, Color3.new(1, 0.7, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
+    ColorSequenceKeypoint.new(0.75, Color3.new(1, 0.7, 0)),
+    ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+});
+local wrColorSequence = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromHex("0084ff")),
+    ColorSequenceKeypoint.new(0.25, Color3.fromHex("9500ff")),
+    ColorSequenceKeypoint.new(0.5, Color3.fromHex("00ff73")),
+    ColorSequenceKeypoint.new(0.75, Color3.fromHex("d900ff")),
+    ColorSequenceKeypoint.new(1, Color3.fromHex("0084ff"))
+});
+
+local dqWindow : Frame = raceHUD.Disqualified;
 
 local stopwatchConnection : RBXScriptConnection = nil;
 local checkpointConnection : RBXScriptConnection = nil;
@@ -183,7 +209,6 @@ local function revealCheckpoint(checkpointNumber : number) : nil
 end
 
 local function raceStart() : nil
-    print("Connecting stopwatch");
     stopwatchConnection = stopwatchEvent.OnClientEvent:Connect(function(timeType : string, timeValue : number) : nil
         if timeType == "COUNTDOWN" then
             raceHUD.Stopwatch.Text = tostring(timeValue);
@@ -192,7 +217,6 @@ local function raceStart() : nil
         end
     end);
 
-    print("Connecting checkpoints");
     revealCheckpoint(1);
 
     checkpointConnection = checkpointEvent.OnClientEvent:Connect(function(checkpointNumber) : nil
@@ -203,6 +227,7 @@ end
 local function raceInit(raceID : string, party : {Player}?) : nil
     raceUI.Visible = false;
     checkpointFolder = workspace:WaitForChild("TimeTrials"):FindFirstChild(raceID).Checkpoints;
+    returnToStartPart = checkpointFolder.Parent.StartPart;
 
     -- slide out buttons hud and show race hud
     raceHUD.Stopwatch.Text = "0:00.0";
@@ -255,7 +280,7 @@ local function raceCleanup(multiplayer : boolean) : nil
     ):Play();
 
     TweenService:Create(
-        raceHUD.CheckpointProgress,
+        raceHUD.Stopwatch,
         baseTweenInfo,
         {["TextTransparency"] = 1, ["BackgroundTransparency"] = 1}
     ):Play();
@@ -275,9 +300,95 @@ local function raceCleanup(multiplayer : boolean) : nil
     end
 end
 
+local function playerBackToStart() : nil
+    player.Character.Humanoid.Sit = false;
+    player.Character:PivotTo(returnToStartPart.CFrame);
+    returnToStartPart = nil;
+end
+
+local function onStatusEvent(eventType : string, data : {string}) : nil
+    for _, checkpoint : Model in pairs(checkpointFolder:GetChildren()) do
+        if checkpoint.Ring.Transparency == 0 then
+            checkpoint.Ring.Transparency = 1;
+            checkpoint.Ring.ParticleEmitter.Enabled = false;
+        end
+    end
+
+    if eventType == "FINISHED" then
+        ttFinishHUD.Score.Text = formatTime(data.Score);
+        ttFinishHUD.Best.Text = data.Best;
+        ttFinishHUD.Rating.Text = data.Rating;
+        ttFinishHUD.XP.Text = data.XP;
+
+        if data.Best == "World Record!" then
+            bestGradient = EasyVisuals.Gradient.new(ttFinishHUD.Best, wrColorSequence, 0);
+            bestGradient:SetOffsetSpeed(0.5, 1);
+        elseif data.Best == "New best!" then
+            bestGradient = EasyVisuals.Gradient.new(ttFinishHUD.Best, newBestColorSequence, 0);
+            bestGradient:SetOffsetSpeed(0.5, 1);
+        end
+
+        ttFinishHUD.Visible = true;
+
+        ttFinishHUD.BackToStart.MouseButton1Click:Once(function() : nil
+            playerBackToStart();
+
+            if bestGradient then
+                bestGradient:Destroy();
+                bestGradient = nil;
+            end
+
+            ttFinishHUD.Visible = false;
+        end);
+
+        ttFinishHUD.Close.MouseButton1Click:Once(function() : nil
+            ttFinishHUD.Visible = false;
+        end);
+
+    else
+        if eventType == "LIMIT_REACHED" then
+            dqWindow.TimeLimitMessage.Visible = true;
+        elseif eventType == "ABORTED" then
+            dqWindow.AbortMessage.Visible = true;
+        end
+
+        dqWindow.Visible = true;
+
+        dqWindow.BackToStart.MouseButton1Click:Once(function() : nil
+            playerBackToStart();
+            dqWindow.Visible = false;
+            dqWindow.TimeLimitMessage.Visible = false;
+            dqWindow.AbortMessage.Visible = false;
+        end);
+
+        dqWindow.Close.MouseButton1Click:Once(function() : nil
+            dqWindow.Visible = false;
+            dqWindow.TimeLimitMessage.Visible = false;
+            dqWindow.AbortMessage.Visible = false;
+        end);
+    end
+
+    raceCleanup();
+end
+
 
 ttStartButton.MouseButton1Click:Connect(function() : nil
     startEvent:FireServer(lastOpenedTT);
 end);
 
 startEvent.OnClientEvent:Connect(raceInit);
+statusChangeEvent.OnClientEvent:Connect(onStatusEvent);
+
+
+
+--[[
+
+gradient effects
+
+local EasyVisuals = require(game.ReplicatedStorage.Modules.UI.EasyVisuals);
+local Gradient = EasyVisuals.Gradient.new(script.Parent, myColorSequence, 0);
+-- Then we can use the gradient to apply it to an object
+Gradient:SetOffsetSpeed(0.5, 1)
+print(Gradient.IsPaused);
+
+]]

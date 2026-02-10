@@ -1,0 +1,6 @@
+things to do:
+
+- always update best when opening time trial
+- time trial awarding xp
+- xp to level / level bar
+- multiplayer

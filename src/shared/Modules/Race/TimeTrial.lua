@@ -26,6 +26,8 @@ function TimeTrial.new(player: Player, raceID : string, checkpoints : Folder, ti
     self.checkpointConnection = nil;
     self.checkpointEvent = Instance.new("BindableEvent");
 
+    self.abortConnections = {};
+
     self.event = Instance.new("BindableEvent");
 
 
@@ -34,6 +36,7 @@ end
 
 function TimeTrial:RevealNextCheckpoint() : nil
     local nextCheckpoint : Model = self.checkpoints:FindFirstChild(tostring(self.nextCheckpoint));
+
     if nextCheckpoint then
 
         if self.checkpointConnection then
@@ -50,26 +53,32 @@ function TimeTrial:RevealNextCheckpoint() : nil
 end
 
 function TimeTrial:EnableEndEventListeners() : nil
-    self.character:FindFirstChildOfClass("Humanoid").Seated:Connect(function(active : boolean) : nil
+    table.insert(self.abortConnections, self.character:FindFirstChildOfClass("Humanoid").Seated:Connect(function(active : boolean) : nil
         if active == false then
             self:Abort();
         end
-    end);
+    end));
 
-    self.character:FindFirstChildOfClass("Humanoid").Died:Connect(function() : nil
+    table.insert(self.abortConnections, self.character:FindFirstChildOfClass("Humanoid").Died:Connect(function() : nil
         self:Abort();
-    end);
+    end));
 
-    self.timer.event.Event:Connect(function(signal : string) : nil
+    table.insert(self.abortConnections, self.timer.event.Event:Connect(function(signal : string) : nil
         if signal == "LIMIT_REACHED" then
-            self:Abort();
+            self.event:Fire("LIMIT_REACHED")
+            self:Stop();
         end
-    end);
+    end));
+end
+
+function TimeTrial:DisconnectEndEventListeners() : nil
+    for _, connection : RBXScriptSignal in pairs(self.abortConnections) do
+        connection:Disconnect();
+    end
 end
 
 function TimeTrial:Start() : nil
     self.timing = true;
-    print("timing: " .. tostring(self.timing));
 
     while self.timing do
         self:RevealNextCheckpoint();
@@ -89,8 +98,14 @@ function TimeTrial:Start() : nil
 
 end
 
+function TimeTrial:Stop() : nil
+    self.timing = false;
+    self:DisconnectEndEventListeners();
+end
+
 function TimeTrial:Abort() : nil
     self.timing = false;
+    self:DisconnectEndEventListeners();
 
     self.event:Fire("ABORTED");
 end
@@ -98,6 +113,7 @@ end
 function TimeTrial:Finish() : nil
     self.timing = false;
     self.finished = true;
+    self:DisconnectEndEventListeners();
 
     self.event:Fire("FINISHED");
 end
