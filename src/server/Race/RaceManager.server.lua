@@ -32,7 +32,7 @@ local function timeTrialComplete(player: Player, raceID : string, finalTime : nu
     local thisTrialRatings = ttInfo.Times;
 
     if lbData and #lbData > 0    then
-        firstPlaceTime = lbData[1].value;
+        firstPlaceTime = (lbData[1].value) / 1000;
     end
 
     local xp = 0;
