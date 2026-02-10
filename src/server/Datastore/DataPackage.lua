@@ -15,11 +15,11 @@ function DataPackage.new(t : table?) : DataPackage
             ["xp"] = 0
         },
         ["racestats"] = {
-            ["cupid"] = 99999,
-            ["mixpeed"] = 99999,
-            ["pure"] = 99999,
-            ["wzrd"] = 99999,
-            ["forever"] = 99999
+            ["cupid"] = math.huge,
+            ["mixpeed"] = math.huge,
+            ["pure"] = math.huge,
+            ["wzrd"] = math.huge,
+            ["forever"] = math.huge
         },
         ["preferences"] = {
     

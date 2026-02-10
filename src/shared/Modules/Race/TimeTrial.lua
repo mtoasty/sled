@@ -65,7 +65,7 @@ function TimeTrial:EnableEndEventListeners() : nil
 
     table.insert(self.abortConnections, self.timer.event.Event:Connect(function(signal : string) : nil
         if signal == "LIMIT_REACHED" then
-            self.event:Fire("LIMIT_REACHED")
+            self.event:Fire("LIMIT_REACHED");
             self:Stop();
         end
     end));
@@ -88,8 +88,8 @@ function TimeTrial:Start() : nil
             local player : Player = Players:GetPlayerFromCharacter(character);
 
             if player == self.Player then
+                self.checkpointEvent:Fire(self.nextCheckpoint);
                 self.nextCheckpoint += 1;
-                self.checkpointEvent:Fire();
             end
         end);
 

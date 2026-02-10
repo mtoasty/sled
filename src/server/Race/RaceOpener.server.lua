@@ -25,7 +25,19 @@ local TimeTrialInfos : table = require(ReplicatedStorage:WaitForChild("Modules")
 
 local raceOpenEvent : RemoteEvent =  ReplicatedStorage:WaitForChild("RemoteEvents").Race.RaceOpen;
 
+-- ! Cache could cause memory leak, if new players are constantly added
+local cachedData : {table} = {};
+
 function onPromptTriggered(playerWhoTriggered : Player, raceID : string) : nil
+
+    --| Prevent spamming leaderboard fetches
+    local potentialCache : table = cachedData[playerWhoTriggered.Name];
+    if potentialCache then
+        if raceID == potentialCache.lastTTOpened and (time() - potentialCache.openedTime) < 60 then
+            raceOpenEvent:FireClient(playerWhoTriggered, potentialCache.data);
+            return;
+        end
+    end
 
     local thisTrialInfo : table = TimeTrialInfos[raceID];
 
@@ -40,6 +52,12 @@ function onPromptTriggered(playerWhoTriggered : Player, raceID : string) : nil
     }
 
     raceOpenEvent:FireClient(playerWhoTriggered, raceData);
+
+    cachedData[playerWhoTriggered.Name] = {
+        ["lastTTOpened"] = raceID,
+        ["openedTime"] = time(),
+        ["data"] = raceData
+    };
 end
 
 

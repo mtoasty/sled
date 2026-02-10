@@ -1,5 +1,6 @@
 local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
 local TweenService : TweenService = game:GetService("TweenService");
+local ContextActionService : ContextActionService = game:GetService("ContextActionService");
 local Players : Players = game:GetService("Players");
 local EasyVisuals = require(ReplicatedStorage.Modules.UI.EasyVisuals);
 
@@ -74,10 +75,10 @@ local function loadUI(raceData : table) : nil
     
     ]]
 
-    --| Don't send new requests if the info has no chance of changing (and prevents spamming)
-
+    --| Don't reset everything if nothing is going to change
     if (lastOpenedTT == raceData.raceID and time() - lastOpenedTime < 60) then
         raceUI.Visible = true;
+        ttInfoPage.Best.Text = formatTime(player.Data.racestats[raceData.raceID].Value);
         return;
     end
 
@@ -99,11 +100,11 @@ local function loadUI(raceData : table) : nil
     ttInfoPage.Bronze.Text = formatTime(raceData.trialInfo.Times.Bronze);
     ttInfoPage.Limit.Text = formatTime(raceData.trialInfo.Times.Limit);
 
-    ttInfoPage.Best.Text = formatTime(raceData.playerScore);
+    ttInfoPage.Best.Text = formatTime(player.Data.racestats[raceData.raceID].Value);
 
     for i : number, lbEntry : table in ipairs(raceData.lbData) do
         local newFrame = buildLbFrame(lbEntry, i);
-        newFrame.Parent = ttInfoPage.Leaderboard.Container;
+        newFrame.Parent = raceUI.TimeTrial.Leaderboard.Container;
     end
 
     raceUI.Visible = true;
@@ -155,7 +156,11 @@ local stopwatchEvent : UnreliableRemoteEvent = ReplicatedStorage.RemoteEvents.Ra
 local statusChangeEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.StatusChange;
 
 local checkpointFolder : Folder = nil;
+local curCheckpoint = 0;
 local returnToStartPart : BasePart = nil;
+local sled : Model = nil;
+
+local racing : boolean = false;
 
 local raceHUD : Frame = script.Parent.Parent.RaceHUD;
 local buttonsHUD : Frame = script.Parent.Parent.Buttons;
@@ -181,17 +186,20 @@ local dqWindow : Frame = raceHUD.Disqualified;
 
 local stopwatchConnection : RBXScriptConnection = nil;
 local checkpointConnection : RBXScriptConnection = nil;
+local tpLastConnection : RBXScriptConnection = nil;
 
 local baseTweenInfo : TweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Sine);
 
 local function revealCheckpoint(checkpointNumber : number) : nil
+
+    curCheckpoint = checkpointNumber - 1;
     local nextCheckpoint : Model = checkpointFolder:FindFirstChild(tostring(checkpointNumber));
 
     if nextCheckpoint then
         nextCheckpoint.Ring.Transparency = 0;
         nextCheckpoint.Ring.ParticleEmitter.Enabled = true;
 
-        raceHUD.CheckpointProgress.Text = tostring(checkpointNumber - 1) .. "/" .. tostring(#checkpointFolder:GetChildren());
+        raceHUD.CheckpointProgress.Text = tostring(curCheckpoint) .. "/" .. tostring(#checkpointFolder:GetChildren());
     else
         TweenService:Create(
             raceHUD.CheckpointProgress,
@@ -200,7 +208,7 @@ local function revealCheckpoint(checkpointNumber : number) : nil
         ):Play();
     end
 
-    local lastCheckpoint : Model = checkpointFolder:FindFirstChild(tostring(checkpointNumber - 1));
+    local lastCheckpoint : Model = checkpointFolder:FindFirstChild(tostring(curCheckpoint));
 
     if lastCheckpoint then
         lastCheckpoint.Ring.Transparency = 1;
@@ -208,11 +216,30 @@ local function revealCheckpoint(checkpointNumber : number) : nil
     end
 end
 
+local function tpLastCheckpoint(actionName : string | GuiButton, inputState : Enum.UserInputState, inputObject : InputObject)
+    if typeof(actionName) ~= "string" or inputState == Enum.UserInputState.Begin then
+        sled.Components:FindFirstChildOfClass("VehicleSeat").Anchored = true;
+
+        if curCheckpoint == 0 then
+            player.Character:PivotTo(returnToStartPart.CFrame);
+        else
+            player.Character:PivotTo(checkpointFolder:FindFirstChild(tostring(curCheckpoint)).Hitbox.CFrame * CFrame.Angles(0, -math.rad(90), 0));
+        end
+        
+        task.wait(0.5);
+        sled.Components:FindFirstChildOfClass("VehicleSeat").Anchored = false;
+    end
+end
+
 local function raceStart() : nil
+
     stopwatchConnection = stopwatchEvent.OnClientEvent:Connect(function(timeType : string, timeValue : number) : nil
         if timeType == "COUNTDOWN" then
             raceHUD.Stopwatch.Text = tostring(timeValue);
         elseif timeType == "TICK" then
+            if not racing then
+                racing = true;
+            end
             raceHUD.Stopwatch.Text = formatTime(timeValue);
         end
     end);
@@ -222,6 +249,20 @@ local function raceStart() : nil
     checkpointConnection = checkpointEvent.OnClientEvent:Connect(function(checkpointNumber) : nil
         revealCheckpoint(checkpointNumber);
     end);
+
+    sled = workspace:WaitForChild(player.Name .. "'s sled");
+
+    repeat task.wait() until racing == true;
+
+    ContextActionService:BindAction("TPLastCheckpoint", tpLastCheckpoint, false, Enum.KeyCode.R);
+    tpLastConnection = raceHUD.TPLastCheckpoint.MouseButton1Click:Connect(tpLastCheckpoint);
+    
+    raceHUD.TPLastCheckpoint.Visible = true;
+    TweenService:Create(
+        raceHUD.TPLastCheckpoint,
+        baseTweenInfo,
+        {["TextTransparency"] = 0, ["BackgroundTransparency"] = 0.25}
+    ):Play();
 end
 
 local function raceInit(raceID : string, party : {Player}?) : nil
@@ -272,6 +313,12 @@ local function raceCleanup(multiplayer : boolean) : nil
     stopwatchConnection = nil;
     checkpointConnection:Disconnect();
     checkpointConnection = nil;
+    tpLastConnection:Disconnect();
+    tpLastConnection = nil;
+    sled = nil;
+    racing = false;
+
+    ContextActionService:UnbindAction("TPLastCheckpoint");
 
     TweenService:Create(
         raceHUD.CheckpointProgress,
@@ -298,6 +345,15 @@ local function raceCleanup(multiplayer : boolean) : nil
             {["AnchorPoint"] = Vector2.new(1, 0.5)}
         ):Play();
     end
+
+    TweenService:Create(
+        raceHUD.TPLastCheckpoint,
+        baseTweenInfo,
+        {["TextTransparency"] = 0, ["BackgroundTransparency"] = 0.25}
+    ):Play();
+
+    task.wait(0.5);
+    raceHUD.TPLastCheckpoint.Visible = false;
 end
 
 local function playerBackToStart() : nil

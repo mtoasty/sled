@@ -177,7 +177,7 @@ function savePlayerDataAsync(userId : number, data : table) : nil
 end
 
 function onServerShutdown(closeReason : Enum.CloseReason) : nil
-    if (RunService:IsStudio()) then return; end
+    --if (RunService:IsStudio()) then return; end
     --if (closeReason == Enum.CloseReason.ServerEmpty) then return; end
     print("Server shutting down. Reason: " .. tostring(closeReason));
     serverShuttingDown = true;

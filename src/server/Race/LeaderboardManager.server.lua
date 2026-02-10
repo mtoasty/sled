@@ -19,37 +19,62 @@ for key : string, _ in pairs(TimeTrialInfos) do
 end
 
 
+--[[
+
+* DS Fetching
+
+]]--
+
+
 local function packageLbData(lbData : {table}) : table
     local packagedData : {table} = {};
 
     local userIds : {number} = {};
 
     for i : number, lbEntry : table in ipairs(lbData) do
-        table.insert(userIds, lbEntry.key);
+        table.insert(userIds, tonumber(lbEntry.key));
     end
 
     local userInfos : {table} = UserService:GetUserInfosByUserIdsAsync(userIds);
+    
+    repeat task.wait() until userInfos
 
     for i : number, lbEntry : table in ipairs(lbData) do
-        local userInfo : table = table.find(userInfos, function(info : table) : boolean
-            return info.Id == lbEntry.key;
-        end);
+        local userInfo;
 
-        local userId : number = userInfo and userInfo.Id or nil;
-        local username : string = userInfo and userInfo.Username or "";
-        local displayName : string = userInfo and userInfo.DisplayName or "";
+        for k : number, v : table in pairs(userInfos) do
+            if v.Id == tonumber(lbEntry.key) then
+                userInfo = v;
+                break;
+            end
+        end
 
-        local thumbnail, isReady : string, boolean = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100);
-        
-        if not isReady then
-            thumbnail = emptyPlayerIcon;
+        local userId : number = -1;
+        local username : string = "";
+        local displayName : string = "";
+        local thumbnail = emptyPlayerIcon;
+
+        if userInfo then
+            userId = userInfo.Id;
+            username = userInfo.Username;
+            displayName = userInfo.DisplayName
+
+            local t, isReady = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100);
+
+            if not isReady then
+                thumbnail = emptyPlayerIcon;
+            else
+                thumbnail = t;
+            end
+
+            thumbnail = t;
         end
 
         table.insert(packagedData, {
             ["userId"] = userId,
             ["username"] = username,
             ["displayName"] = displayName,
-            ["score"] = lbEntry.value,
+            ["score"] = (lbEntry.value) / 1000,
             ["thumbnail"] = thumbnail
         });
     end
@@ -77,3 +102,24 @@ local function invoked(raceID : string, raw : boolean?) : table
 end
 
 ServerStorage.ServerEvents.LeaderboardFetch.OnInvoke = invoked;
+
+
+
+
+--[[
+
+* DS Setting
+
+]]--
+
+local function setLbAsync(raceID : string, userId : number, score : number) : nil
+    local success : boolean, err : any = pcall(function(): nil
+        datastores[raceID]:SetAsync(userId, math.floor(score * 1000));
+    end);
+
+    if not success then
+        warn("Error trying to update leaderboard : ".. err);
+    end
+end
+
+ServerStorage.ServerEvents.Leaderboard.Event:Connect(setLbAsync);

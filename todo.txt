@@ -1,6 +1,9 @@
 things to do:
 
-- always update best when opening time trial
-- time trial awarding xp
+- FIX SLED SPAWNING
+- hover animation for time trial ui
 - xp to level / level bar
 - multiplayer
+- voice chat
+- emotes
+- console keybinds on ui?
