@@ -29,8 +29,11 @@ function MahjongGame.new(players : {Player}) : MahjongGame
         self.hands[i] = Mahjong.Hand.new(player);
     end
 
-    self.dealer = players[math.random(1, #players)];
+    self.turnIndex = math.random(1, #players);
+    self.dealer = players[self.turnIndex];
     self.deck = Mahjong.Deck.new();
+
+    self.discard = {};
 
     return self;
 end
@@ -66,6 +69,41 @@ local function playerListToStringList(players : {Player}) : string
     return playerNames;
 end
 
+function MahjongGame:GetAvailableActions(hand : Mahjong.Hand, myturn : boolean) : {string}
+    local actions : {string} = {};
+    local recentDiscard : string = self.discard[#self.discard];
+
+    if hand:CanPeng(recentDiscard) then
+        table.insert(actions, "Peng");
+    end
+
+    if hand:CanGang(recentDiscard) then
+        table.insert(actions, "Gang");
+    end
+
+    if myturn then
+        if hand:CanAnGang() then
+            table.insert(actions, "AnGang");
+        end
+        
+        if hand:CanChi(recentDiscard) then
+            table.insert(actions, "Chi");
+        end
+
+        table.insert(actions, "Draw");
+    end
+
+    return actions;
+end
+
+local function getNextTurnIndex(currentTurnIndex : number, numPlayers : number) : number
+    if currentTurnIndex == numPlayers then
+        return 1;
+    else
+        return currentTurnIndex + 1;
+    end
+end
+
 function MahjongGame:Start() : nil
     print("Game started with dealer " .. self.dealer.Name);
     self:Deal();
@@ -85,19 +123,61 @@ function MahjongGame:Start() : nil
     end
 
     remoteEvent.OnServerEvent:Connect(function(player : Player, action : string, data : any)
-        if action == "dealerDiscard" then
-            if player ~= self.dealer then
-                warn("Player " .. player.Name .. " attempted to discard as dealer when they are not the dealer");
-                return;
-            end
-
+        if action == "discard" then
             self:GetPlayerDeck(player):RemoveCard(data);
+            table.insert(self.discard, Mahjong.Card.fromString(data));
 
-            remoteEvent:FireAllClients("dealerDiscard", {["player"] = player.Name, ["card"] = Mahjong.Card.getImage(data)});
+            remoteEvent:FireAllClients("discard", {["player"] = player.Name, ["card"] = Mahjong.Card.getImage(data)});
+
+            self:NextTurn();
         end
     end);
+
+    remoteFunction.OnServerInvoke = function(player : Player, action : string)
+        if action == "Draw" then
+            return {self:GetPlayerDeck(player):AddCard(self.deck:Draw())}, false;
+        elseif action == "AnGang" then
+            local drawnCard = self:GetPlayerDeck(player):AddCard(self.deck:Draw());
+
+            -- ! box cards
+
+            return {drawnCard}, false;
+        elseif action == "Peng" or action == "Chi" then
+            local recentDiscard : string = self.discard[#self.discard];
+            local addedCard = self:GetPlayerDeck(player):AddCard(Mahjong.Card.fromString(recentDiscard));
+            table.remove(self.discard, #self.discard);
+
+            -- ! box cards
+
+            return {addedCard}, true;
+        elseif action == "Gang" then
+            local recentDiscard : string = self.discard[#self.discard];
+            local addedCard = self:GetPlayerDeck(player):AddCard(Mahjong.Card.fromString(recentDiscard));
+            local drawnCard = self:GetPlayerDeck(player):AddCard(self.deck:Draw());
+            table.remove(self.discard, #self.discard);
+
+            -- ! box cards
+
+            return {addedCard, drawnCard}, true;
+        end
+    end
 end
 
+function MahjongGame:NextTurn() : nil
+    local nextPlayerIndex = getNextTurnIndex(self.turnIndex, #self.players);
+    local nextPlayer = self.players[nextPlayerIndex];
+
+    print("Next turn: " .. nextPlayer.Name);
+    self.turnIndex = nextPlayerIndex;
+
+    for _, p : Players in pairs(self.players) do
+        if p == nextPlayer then
+            remoteEvent:FireClient(p, "turn", self:GetAvailableActions(self:GetPlayerDeck(p), true));
+        else
+            remoteEvent:FireClient(p, "turn", self:GetAvailableActions(self:GetPlayerDeck(p), false));
+        end
+    end
+end
 
 
 return MahjongGame;

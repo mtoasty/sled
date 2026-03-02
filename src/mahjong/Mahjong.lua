@@ -50,6 +50,8 @@ export type Card = {
     ["image"] : string,
 
     ["new"] : (string, number?) -> Card,
+    ["fromString"] : (string) -> Card,
+    ["getImage"] : (string) -> string,
     ["AsTable"] : () -> table
 }
 
@@ -71,6 +73,22 @@ function Card.new(suit : string, value : number?) : Card
     return self;
 end
 
+function Card.fromString(cardId : string) : Card
+    local suit, value = string.sub(cardId, 1, #cardId - 1), string.sub(cardId, #cardId, #cardId + 1);
+
+    if not suit then
+        error("Invalid card ID: " .. cardId);
+    end
+
+    value = tonumber(value) or 0;
+
+    return Card.new(suit, value);
+end
+
+function Card.getImage(cardId : string) : string
+    return cardImages[cardId];
+end
+
 function Card:AsTable() : table
     return {
         ["suit"] = self.suit,
@@ -79,9 +97,7 @@ function Card:AsTable() : table
     };
 end
 
-function Card.getImage(cardId : string) : string
-    return cardImages[cardId];
-end
+
 
 
 
@@ -94,8 +110,8 @@ export type Hand = {
 
     ["new"] : () -> Hand,
     ["Sort"] : () -> nil,
-    ["AddCard"] : (Card) -> nil,
-    ["RemoveCard"] : (Card) -> nil,
+    ["AddCard"] : (Card) -> Card,
+    ["RemoveCard"] : (Card) -> Card,
     ["AsTable"] : () -> {table},
     ["HasWon"] : () -> table,
     ["CanPeng"] : (Card) -> boolean,
@@ -125,18 +141,22 @@ function Hand:Sort() : nil
     end);
 end
 
-function Hand:AddCard(card : Card) : nil
+function Hand:AddCard(card : Card) : Card
     table.insert(self.cards, card);
     self:Sort();
+
+    return card
 end
 
-function Hand:RemoveCard(card : Card) : nil
+function Hand:RemoveCard(card : Card) : Card
     for i : number, c : Card in ipairs(self.cards) do
         if c == card then
             table.remove(self.cards, i);
             break;
         end
     end
+
+    return card;
 end
 
 function Hand:LockCards(cards : {Card}) : nil
@@ -429,7 +449,23 @@ function Hand:CanChi(card : Card) : boolean
     return firstCons ~= nil and secondCons ~= nil;
 end
 
+function Hand:CanAnGang() : boolean
+    for i, card : Card in ipairs(self.cards) do
+        local count = 0;
 
+        for j, otherCard : Card in ipairs(self.cards) do
+            if card == otherCard then
+                count += 1;
+            end
+        end
+
+        if count == 4 then
+            return true;
+        end
+    end
+
+    return false;
+end
 
 
 

@@ -107,17 +107,17 @@ local centreUI = MahjongUI:WaitForChild("Centre");
 local remoteEvent : RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").Mahjong.RemoteEvent;
 local remoteFunction : RemoteFunction = ReplicatedStorage.RemoteEvents.Mahjong.RemoteFunction;
 
-local playerBoxMap : {Frame} = {
-    ["RightHand"] = nil,
-    ["AcrossHand"] = nil,
-    ["LeftHand"] = nil
-};
+local turnEvent : BindableEvent = Instance.new("BindableEvent");
+local interruptEvent : BindableEvent = Instance.new("BindableEvent");
+
+local playerBoxMap : {Frame} = {};
 
 local buttonConnections : {RBXScriptConnection} = {
     ["Peng"] = nil,
     ["Gang"] = nil,
     ["Chi"] = nil,
-    ["Draw"] = nil
+    ["Draw"] = nil,
+    ["AnGang"] = nil
 };
 
 local function addCardToHand(cardData : table, i : number) : nil
@@ -138,7 +138,7 @@ function disableActionButtons() : nil
         end
     end
 
-    for _, button : TextButton in pairs(hud:WaitForChild("ActionButtons"):GetChildren()) do
+    for _, button : TextButton in pairs(centreUI.TurnAction:GetChildren()) do
         if not button:IsA("TextButton") then continue end
 
         button.BackgroundTransparency = 0.75;
@@ -148,7 +148,7 @@ function disableActionButtons() : nil
 end
 
 function enableActionButton(action : string, callback : () -> nil) : nil
-    local button : TextButton = MahjongUI:WaitForChild("Centre"):FindFirstChild(action);
+    local button : TextButton = MahjongUI:WaitForChild("Centre").TurnAction:FindFirstChild(action);
     if not button then warn("Button " .. action .. " not found") return end
 
     button.BackgroundTransparency = 0.25;
@@ -162,10 +162,30 @@ local function myTurn(availableActions : {string})
 
     for _, action : string in pairs(availableActions) do
         enableActionButton(action, function() : nil
-            local newCard = remoteFunction:InvokeServer(action);
-            addCardToHand(newCard, 0);
+            local newCards : table, tookFromDiscard : boolean = remoteFunction:InvokeServer(action);
+            for _, cardData : table in pairs(newCards) do
+                addCardToHand(cardData, 0);
+            end
+
+            if tookFromDiscard then
+                updateDiscard("", "");
+            end
+
             disableActionButtons();
+
+            print("fired turn action")
+            turnEvent:Fire();
         end);
+    end
+
+    interruptEvent.Event:Once(function() : nil
+        disableActionButtons();
+        return;
+    end);
+
+    if (#availableActions > 0) then
+        print("turn action completed, moving to discard")
+        turnEvent.Event:Wait();
     end
 
     MahjongUI.Message.Text = "Choose a card to discard";
@@ -181,10 +201,6 @@ local function myTurn(availableActions : {string})
         table.insert(clickConnections, card.InputEnded:Connect(function(input : InputObject)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 remoteEvent:FireServer("discard", card.Name);
-
-                if #availableActions == 0 then
-                    remoteEvent:FireServer("dealerDiscard", card.Name);
-                end
 
                 card:Destroy();
                 MahjongUI.Message.Text = "";
@@ -259,27 +275,35 @@ local function initializeUI(data : {table}) : nil
 
             card.Size = UDim2.new(1, 0, 1, 0);
             card.Visible = true;
-            card.LayoutOrder = i - 1;
+            card.LayoutOrder = i - 1
         end
         
     end
 
+    MahjongUI.Enabled = true;
+    hud.Enabled = false;
+
     if Players.LocalPlayer.Name == data.dealer then
         myTurn({});
     end
-
-    MahjongUI.Enabled = true;
-    hud.Enabled = false;
 end
 
-local function updateDiscard(player : string, discard : string)
-    if not centreUI.TurnAction.DisplayCard.Visible then
-        centreUI.TurnAction.DisplayCard.Visible = true
+function updateDiscard(player : string, discard : string)
+    print("discarding from player " .. player)
+    if not centreUI.TurnAction.DisplayCard.Visible and discard then
+        centreUI.TurnAction.DisplayCard.Visible = true;
     end
 
-    centreUI.TurnAction.DisplayCard.ImageLabel.Image = discard;
+    if discard == "" then
+        centreUI.TurnAction.DisplayCard.Visible = false;
+        centreUI.TurnAction.DisplayCard.ImageLabel.Image = "";
+    else
+        centreUI.TurnAction.DisplayCard.ImageLabel.Image = discard;
+    end
 
-    playerBoxMap[player]:FindFirstChild("Card"):Destroy()
+    if player ~= "" and player ~= Players.LocalPlayer.Name then
+        playerBoxMap[player]:FindFirstChild("Card"):Destroy();
+    end
 end
 
 
@@ -323,8 +347,14 @@ local function handleRemoteEvent(action : string, data : any)
     if action == "init" then
         print("initializing UI with data: " .. tostring(data));
         initializeUI(data);
-    elseif action == "dealerDiscard" then
+    elseif action == "discard" then
         updateDiscard(data.player, data.card);
+    elseif action == "turn" then
+        if #data > 0 then
+            myTurn(data);
+        end
+    elseif action == "turnStolen" then
+
     end
 end
 
