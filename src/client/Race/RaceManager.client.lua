@@ -3,6 +3,7 @@ local TweenService : TweenService = game:GetService("TweenService");
 local ContextActionService : ContextActionService = game:GetService("ContextActionService");
 local Players : Players = game:GetService("Players");
 local EasyVisuals = require(ReplicatedStorage.Modules.UI.EasyVisuals);
+local formatTime = require(ReplicatedStorage.Modules.sledutils).formatTime;
 
 local player : Player = Players.LocalPlayer;
 
@@ -12,17 +13,6 @@ local ttInfoPage : Frame = raceUI.TimeTrial.InfoPage;
 local ttLbTemplate : Frame = raceUI.TimeTrial.Leaderboard.PlaceTemplate;
 
 local emptyPlayerIcon : string = "rbxassetid://6034268008";
-
-local function formatTime(t : number) : string
-    if t == 99999 or t == math.huge then
-        return "-:--";
-    end
-
-    local minutes = math.floor(t / 60);
-    local seconds = math.floor(t % 60);
-    local ms = math.floor((t - math.floor(t)) * 1000);
-    return string.format("%d:%02d.%d", minutes, seconds, ms);
-end
 
 
 
@@ -218,7 +208,7 @@ end
 
 local function tpLastCheckpoint(actionName : string | GuiButton, inputState : Enum.UserInputState, inputObject : InputObject)
     if typeof(actionName) ~= "string" or inputState == Enum.UserInputState.Begin then
-        sled.Components:FindFirstChildOfClass("VehicleSeat").Anchored = true;
+        sled:WaitForChild("Components"):FindFirstChildOfClass("VehicleSeat").Anchored = true;
 
         if curCheckpoint == 0 then
             player.Character:PivotTo(returnToStartPart.CFrame);
@@ -375,6 +365,21 @@ local function onStatusEvent(eventType : string, data : {string}) : nil
         ttFinishHUD.Best.Text = data.Best;
         ttFinishHUD.Rating.Text = data.Rating;
         ttFinishHUD.XP.Text = data.XP;
+        ttFinishHUD.WR.Text = data.WR;
+        ttFinishHUD.BestDiff.Text = data.BestDiff;
+        ttFinishHUD.WRDiff.Text = data.WRDiff;
+
+        if (string.sub(data.BestDiff, 1, 2) == "+") then
+            ttFinishHUD.BestDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
+        else
+            ttFinishHUD.BestDiff.TextColor3 = Color3.fromRGB(200, 50, 50);
+        end
+
+        if (string.sub(data.WRDiff, 1, 2) == "+") then
+            ttFinishHUD.WRDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
+        else
+            ttFinishHUD.WRDiff.TextColor3 = Color3.fromRGB(200, 50, 50);
+        end
 
         if data.Best == "World Record!" then
             bestGradient = EasyVisuals.Gradient.new(ttFinishHUD.Best, wrColorSequence, 0);

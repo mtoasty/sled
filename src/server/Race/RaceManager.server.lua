@@ -14,26 +14,21 @@ local leaderboardFetch : BindableFunction = ServerStorage.ServerEvents.Leaderboa
 
 local spawnSled : BindableEvent = ServerStorage:WaitForChild("ServerEvents").SpawnSled;
 
-local function formatTime(t : number) : string
-    if t == 99999 or t == math.huge then
-        return "-:--";
-    end
-
-    local minutes = math.floor(t / 60);
-    local seconds = math.floor(t % 60);
-    local ms = math.floor((t - math.floor(t)) * 1000);
-    return string.format("%d:%02d.%d", minutes, seconds, ms);
-end
+local formatTime = require(ReplicatedStorage.Modules.sledutils).formatTime;
 
 local function timeTrialComplete(player: Player, raceID : string, finalTime : number, ttInfo : table) : table
     -- award xp, send final score
     local lbData = leaderboardFetch:Invoke(raceID, true);
     local firstPlaceTime = math.huge;
     local thisTrialRatings = ttInfo.Times;
+    local playerBest = player.Data.racestats[raceID].Value;
 
-    if lbData and #lbData > 0    then
+    if lbData and #lbData > 0 then
         firstPlaceTime = (lbData[1].value) / 1000;
     end
+
+    print("Final time, player best, first place time:");
+    print(finalTime, playerBest, firstPlaceTime);
 
     local xp = 0;
 
@@ -41,18 +36,44 @@ local function timeTrialComplete(player: Player, raceID : string, finalTime : nu
         ["Score"] = finalTime,
         ["Best"] = "-:--",
         ["Rating"] = "-",
-        ["XP"] = ""
+        ["XP"] = "",
+        ["WR"] = formatTime(firstPlaceTime),
+        ["BestDiff"] = "n/a",
+        ["WRDiff"] = "n/a"
     };
 
-    results.Best = formatTime(finalTime);
+    if playerBest ~= math.huge and playerBest ~= 99999 then
+        results.Best = formatTime(playerBest);
+        results.BestDiff = formatTime(math.abs(finalTime - playerBest));
 
-    if finalTime < firstPlaceTime then
+        if finalTime <= playerBest then
+            results.BestDiff = "-" .. results.BestDiff;
+        else
+            results.BestDiff = "+" .. results.BestDiff;
+        end
+    else
+        results.Best = "-:--";
+    end
+
+    if firstPlaceTime ~= math.huge and firstPlaceTime ~= 99999 then
+        results.WRDiff = formatTime(math.abs(finalTime - firstPlaceTime));
+
+        if finalTime <= firstPlaceTime then
+            results.WRDiff = "-" .. results.WRDiff;
+        else
+            results.WRDiff = "+" .. results.WRDiff;
+        end
+    else
+        results.WR = "-:--";
+    end
+
+    if finalTime < firstPlaceTime and (firstPlaceTime ~= math.huge and firstPlaceTime ~= 99999) then
         results.Best = "World Record!";
         xp += 1000;
         
         ServerStorage.ServerEvents.Leaderboard:Fire(raceID, player.UserId, finalTime);
         player.Data.racestats[raceID].Value = finalTime;
-    elseif finalTime < player.Data.racestats[raceID] then
+    elseif finalTime < playerBest then
         results.Best = "New best!";
         xp += 250;
         
@@ -88,6 +109,7 @@ local function timeTrialComplete(player: Player, raceID : string, finalTime : nu
 
     player.Data.playerstats.xp.Value = player.Data.playerstats.xp.Value + xp;
 
+    print(results);
     return results;
 end
 
@@ -135,7 +157,7 @@ local function beginRace(players : Player | {Player}, raceID : string) : nil
             local newSled = workspace:WaitForChild(player.Name .. "'s sled", 10)
             if newSled == nil then
                 warn("Sled failed to spawn for player " .. player.Name .. ". Race cancelled");
-                -- error handling if sled doesn't spawn for some reason
+                -- ! error handling if sled doesn't spawn for some reason
                 return;
             end
 
