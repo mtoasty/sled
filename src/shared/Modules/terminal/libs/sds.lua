@@ -1,6 +1,8 @@
 local Players : Players = game:GetService("Players");
 local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
 
+local formatTable = require(ReplicatedStorage.Modules.sledutils).formatTable;
+
 function findUserIdFromStringAsync(user : string) : (boolean, number)
     if (user == "&s") then
         return true, Players.LocalPlayer.UserId;
@@ -42,31 +44,6 @@ function findUserIdFromStringAsync(user : string) : (boolean, number)
     return success, userId
 end
 
-function stringify(v, spaces, usesemicolon, depth)
-	if type(v) ~= 'table' then
-		return tostring(v)
-	elseif not next(v) then
-		return '{}'
-	end
-
-	spaces = spaces or 4
-	depth = depth or 1
-
-	local space = (" "):rep(depth * spaces)
-	local sep = usesemicolon and ";" or ","
-	local concatenationBuilder = {"{"}
-	
-	for k, x in next, v do
-		table.insert(concatenationBuilder, ("\n%s[%s] = %s%s"):format(space,type(k)=='number'and tostring(k)or('"%s"'):format(tostring(k)), stringify(x, spaces, usesemicolon, depth+1), sep))
-	end
-
-	local s = table.concat(concatenationBuilder)
-	return ("%s\n%s}"):format(s:sub(1,-2), space:sub(1, -spaces-1))
-end
-
-
-
-
 
 local sds = {
     ["help"] = function(self : table) : nil
@@ -86,10 +63,11 @@ local sds = {
         if (success) then
             local result : boolean, data : table = script.Gateway:InvokeServer("get", userId);
             if (result == true) then
-                local stringified = stringify(data, 2, false)
+                local stringified = formatTable(data, 2, false)
                 for line in stringified:gmatch("(.-)\n") do
                     self:log(line);
                 end
+                self:log("}");
             else
                 self:err(data);
             end
