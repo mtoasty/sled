@@ -1,6 +1,7 @@
 local TweenService : TweenService = game:GetService("TweenService");
 local UserInputService : UserInputService = game:GetService("UserInputService");
 local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
+local SoundService : SoundService = game:GetService("SoundService");
 local Players : Players = game:GetService("Players");
 
 
@@ -96,3 +97,49 @@ UserInputService.InputEnded:Connect(function(input : InputObject, gameProcessedE
         end
     end
 end)
+
+
+--| Level
+
+local playerLevel : number = playerData.playerstats.level;
+local playerXP : number = playerData.playerstats.xp;
+local currentLevel = playerLevel.Value;
+local xpRequirement = require(ReplicatedStorage.Modules.sledutils).xpRequirement;
+
+local levelUI : Frame = hudGUI.Level;
+local levelupSound : Sound = levelUI.Levelup;
+
+levelUI.Level.Text = "Level " .. playerLevel.Value;
+levelUI.XP.Text = playerXP.Value .. "/" .. xpRequirement(playerLevel.Value);
+levelUI.Bar.Fill.Size = UDim2.new(playerXP.Value / xpRequirement(playerLevel.Value), 0, 1, 0);
+
+local function tweenXPBar(xpPercent : number) : nil
+    TweenService:Create(levelUI.Bar.Fill, TweenInfo.new(0.5), {["Size"] = UDim2.new(xpPercent, 0, 1, 0)}):Play();
+end
+
+local function xpChanged() : nil
+    if playerLevel.Value ~= currentLevel then return; end
+    tweenXPBar(playerXP.Value / xpRequirement(playerLevel.Value));
+    levelUI.XP.Text = playerXP.Value .. "/" .. xpRequirement(playerLevel.Value);
+end
+
+local function levelChanged() : nil
+    local newLevel = playerLevel.Value;
+    local newXP = playerXP.Value;
+
+    for i = currentLevel, newLevel - 1 do
+        tweenXPBar(1);
+        levelUI.Level.Text = "Level " .. (i + 1);
+        levelUI.XP.Text = xpRequirement(i) .. "/" .. xpRequirement(i);
+        task.wait(0.5);
+        levelUI.Bar.Fill.Size = UDim2.new(0, 0, 1, 0);
+        SoundService:PlayLocalSound(levelupSound);
+    end
+
+    tweenXPBar(newXP / xpRequirement(newLevel));
+    levelUI.Level.Text = "Level " .. newLevel;
+    levelUI.XP.Text = newXP .. "/" .. xpRequirement(newLevel);
+end
+
+playerLevel:GetPropertyChangedSignal("Value"):Connect(levelChanged);
+playerXP:GetPropertyChangedSignal("Value"):Connect(xpChanged);

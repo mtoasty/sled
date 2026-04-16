@@ -4,6 +4,14 @@ local ServerStorage : ServerStorage = game:GetService("ServerStorage");
 local clientSledSpawnEvent : RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").SpawnSled;
 local serverSledSpawnEvent : BindableEvent = ServerStorage:WaitForChild("ServerEvents").SpawnSled;
 
+local function assignNetworkOwner(sled : Model, targetPlayer : Player) : nil
+	for _, inst : Instance in pairs(sled:GetDescendants()) do
+		if (inst:IsA("BasePart")) then
+			inst:SetNetworkOwner(targetPlayer);
+		end
+	end
+end
+
 local function spawnSled(player : Player, nameOfSled : string) : nil
 	local character = player.Character or player.CharacterAdded:Wait();
 	local curSled = workspace:FindFirstChild(player.Name.."'s sled");
@@ -23,6 +31,7 @@ local function spawnSled(player : Player, nameOfSled : string) : nil
 	newSled.Name = player.Name .. "'s sled";
 	newSled:PivotTo(character.HumanoidRootPart.CFrame);
 	newSled.Components.VehicleSeat:Sit(character:FindFirstChildOfClass("Humanoid"));
+	assignNetworkOwner(newSled, player);
 end
 
 clientSledSpawnEvent.OnServerEvent:Connect(spawnSled);

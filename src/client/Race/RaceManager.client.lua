@@ -208,7 +208,8 @@ end
 
 local function tpLastCheckpoint(actionName : string | GuiButton, inputState : Enum.UserInputState, inputObject : InputObject)
     if typeof(actionName) ~= "string" or inputState == Enum.UserInputState.Begin then
-        sled:WaitForChild("Components"):FindFirstChildOfClass("VehicleSeat").Anchored = true;
+        sled.Components.Lock.Enabled = true;
+        sled.Components.RotLock.Enabled = true;
 
         if curCheckpoint == 0 then
             player.Character:PivotTo(returnToStartPart.CFrame);
@@ -217,7 +218,8 @@ local function tpLastCheckpoint(actionName : string | GuiButton, inputState : En
         end
         
         task.wait(0.5);
-        sled.Components:FindFirstChildOfClass("VehicleSeat").Anchored = false;
+        sled.Components.Lock.Enabled = false;
+        sled.Components.RotLock.Enabled = false;
     end
 end
 

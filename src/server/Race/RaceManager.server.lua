@@ -4,6 +4,7 @@ local ServerStorage : ServerStorage = game:GetService("ServerStorage");
 local TimeTrial : table = require(ReplicatedStorage:WaitForChild("Modules").Race.TimeTrial);
 local Stopwatch : table = require(ReplicatedStorage.Modules.Race.Stopwatch);
 local TimeTrialInfos : table = require(ReplicatedStorage.Modules.Race.TimeTrialInfos);
+local xpRequirement = require(ReplicatedStorage.Modules.sledutils).xpRequirement;
 
 local startEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.Start;
 local stopwatchEvent : UnreliableRemoteEvent = ReplicatedStorage.RemoteEvents.Race.Stopwatch;
@@ -16,6 +17,28 @@ local spawnSled : BindableEvent = ServerStorage:WaitForChild("ServerEvents").Spa
 
 local formatTime = require(ReplicatedStorage.Modules.sledutils).formatTime;
 
+--| XP for next level = (current level)^2 * log(current level) + 100, floored.
+--| Repeatedly update the player's level until they don't have enough XP
+local function developPlayerLevel(player : Player) : nil
+    local playerLevel = player.Data.playerstats.level.Value;
+    local xpNeeded = xpRequirement(playerLevel);
+    local playerXP = player.Data.playerstats.xp.Value;
+    local levelsGained = 0;
+    while playerXP >= xpNeeded do
+        playerLevel += 1;
+        levelsGained += 1;
+        
+        playerXP = playerXP - xpNeeded;
+        xpNeeded = xpRequirement(playerLevel);
+    end
+
+    if levelsGained > 0 then
+        player.Data.playerstats.level.Value = playerLevel;
+    end
+
+    player.Data.playerstats.xp.Value = playerXP;
+end
+
 local function timeTrialComplete(player: Player, raceID : string, finalTime : number, ttInfo : table) : table
     -- award xp, send final score
     local lbData = leaderboardFetch:Invoke(raceID, true);
@@ -26,9 +49,6 @@ local function timeTrialComplete(player: Player, raceID : string, finalTime : nu
     if lbData and #lbData > 0 then
         firstPlaceTime = (lbData[1].value) / 1000;
     end
-
-    print("Final time, player best, first place time:");
-    print(finalTime, playerBest, firstPlaceTime);
 
     local xp = 0;
 
@@ -109,7 +129,8 @@ local function timeTrialComplete(player: Player, raceID : string, finalTime : nu
 
     player.Data.playerstats.xp.Value = player.Data.playerstats.xp.Value + xp;
 
-    print(results);
+    developPlayerLevel(player);
+
     return results;
 end
 
@@ -150,7 +171,8 @@ local function beginRace(players : Player | {Player}, raceID : string) : nil
             task.wait(1); --| Allow time for client to connect to stopwatch
 
 
-            player.Character.HumanoidRootPart.Anchored = true;
+            player.Character.Humanoid.WalkSpeed = 0;
+            player.Character.Humanoid.JumpHeight = 0;
             player.Character:PivotTo(ttWorkspace.StartPart.CFrame);
             spawnSled:Fire(player, player.Data.sledConfig.sledType.Value);
 
@@ -161,8 +183,8 @@ local function beginRace(players : Player | {Player}, raceID : string) : nil
                 return;
             end
 
-            newSled.Components.VehicleSeat.Anchored = true;
-            player.Character.HumanoidRootPart.Anchored = false;
+            newSled.Components.Lock.Enabled = true;
+            newSled.Components.RotLock.Enabled = true;
 
             newTimeTrial:EnableEndEventListeners();
 
@@ -178,8 +200,13 @@ local function beginRace(players : Player | {Player}, raceID : string) : nil
                 task.wait(1);
             end
 
+            
             newStopwatch:Start();
-            newSled.Components.VehicleSeat.Anchored = false;
+            newSled.Components.Lock.Enabled = false;
+            newSled.Components.RotLock.Enabled = false;
+
+            player.Character.Humanoid.WalkSpeed = 16;
+            player.Character.Humanoid.JumpHeight = 7.2;
 
             while newTimeTrial.timing do
                 stopwatchEvent:FireClient(player, "TICK", newStopwatch.elapsed);
@@ -188,8 +215,6 @@ local function beginRace(players : Player | {Player}, raceID : string) : nil
         end);
     end
 end
-
-
 
 
 local function handleServerEvent(player : Player, raceID : string, party : {Player}?) : nil

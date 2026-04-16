@@ -151,4 +151,8 @@ function sledutils.isDeveloper(player : Player) : boolean
     return player:GetRankInGroupAsync(13628961) >= 254;
 end
 
+function sledutils.xpRequirement(currentLevel : number) : number
+    return math.floor(currentLevel ^ 2 * math.log10(currentLevel)) + 100;
+end
+
 return sledutils;
