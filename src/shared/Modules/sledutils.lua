@@ -152,7 +152,7 @@ function sledutils.isDeveloper(player : Player) : boolean
 end
 
 function sledutils.xpRequirement(currentLevel : number) : number
-    return math.floor(currentLevel ^ 2 * math.log10(currentLevel)) + 100;
+    return math.floor(10 * currentLevel * math.log10(currentLevel)) + 100;
 end
 
 return sledutils;

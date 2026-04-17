@@ -29,7 +29,7 @@ ReplicatedStorage.RemoteEvents.openCustomize.OnClientEvent:Connect(function() : 
         local requiredLevel : number = sledType:GetAttribute("requiredLevel");
         local requiresMoons : boolean = sledType:GetAttribute("moons");
 
-        if (playerData.sledstats.Level >= requiredLevel) then
+        if (playerData.playerstats.Level >= requiredLevel) then
             if (requiresMoons == true) then
                 local ds_id = sledType:GetAttribute("ds_id");
                 if (playerData.sledConfig.cosmetics[ds_id] == true) then

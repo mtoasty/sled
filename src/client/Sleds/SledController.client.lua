@@ -6,6 +6,7 @@ determine a clean landing by getting percent of y velocity conserved on the land
 
 
 local Players : Players = game:GetService("Players");
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService : RunService = game:GetService("RunService");
 local TweenService : TweenService = game:GetService("TweenService");
 local UserInputService : UserInputService = game:GetService("UserInputService");
@@ -19,6 +20,7 @@ local camera : Camera = workspace.CurrentCamera;
 local hud : ScreenGui = LocalPlayer:WaitForChild("PlayerGui").HUD;
 local keystrokesUI : Frame = hud.Keystrokes;
 
+local sledding : boolean = false;
 
 local components : Folder | nil;
 local heartbeatConnection : RBXScriptConnection | nil;
@@ -37,10 +39,11 @@ local sledSettings = {
 
 --| Camera managing
 
-
+local cameraInUse = false;
 local currentCameraMode = 1;
 
 function SwitchCameraMode(actionName : string, inputState : Enum.UserInputState, inputObject : InputObject) : nil
+	if cameraInUse then return; end
 	if (inputState == Enum.UserInputState.Begin) then
 		if currentCameraMode == 5 then
 			currentCameraMode = 1;
@@ -81,6 +84,8 @@ function cameraDampOnInst(inst : BasePart, deltaTime : number) : nil
 end
 
 function UpdateCamera(deltaTime : number) : nil
+
+	if cameraInUse then return; end
 
 	--| Default
 	if (currentCameraMode == 1) then
@@ -123,7 +128,11 @@ function UpdateCamera(deltaTime : number) : nil
 	camera.FieldOfView = currentFov + (targetFov - currentFov) * 0.95;
 end
 
+function updateCameraUsage(newVal : boolean) : nil
+	cameraInUse = newVal;
+end
 
+ReplicatedStorage.LocalEvents.POVCamOverride.Event:Connect(updateCameraUsage);
 
 
 --| Sled physics
@@ -167,123 +176,6 @@ function getTiltVector(inputMode : string) : Vector2
 	end
 end
 
-
---| Variable to save last particle size
-local lastSprayValue : number = 0;
-local sprayIncreasing : boolean = false;
-
---| Particle size calculator
-local vToPSize = function(v : number) : number
-	return math.max(math.tanh(0.02 * (v - 20)), 0);
-end
-
-function updateParticles(deltaTime : number, velocity : number) : nil
-	--| Particle effects
-
-	local velocityVector : Vector3 = components.VehicleSeat.AssemblyLinearVelocity;
-	local directionVector : Vector3 = components.VehicleSeat.CFrame.LookVector;
-	
-	--| Normal particles
-	local particleSize : NumberSequence = NumberSequence.new{
-		NumberSequenceKeypoint.new(0.0, 1.25 * vToPSize(velocity)),
-		NumberSequenceKeypoint.new(0.5, 4.10 * vToPSize(velocity)),
-		NumberSequenceKeypoint.new(1.0, 10.0 * vToPSize(velocity))
-	};
-	
-	--| Assign properties
-	for _, particlePart : BasePart in pairs(components.ParticleParts:GetChildren()) do
-		if (particlePart.Name == "SnowParticle") then
-			particlePart.ParticleEmitter.Size = particleSize;
-		end
-	end
-
-	--| Spray particles
-
-	local sprayAngle : number = math.acos(velocityVector:Dot(directionVector) / (velocityVector.Magnitude * directionVector.Magnitude));
-	if (sprayAngle > (math.pi / 2)) then
-		sprayAngle = math.pi - sprayAngle;
-	end
-
-	--| Calculate which spray side should spray (distance)
-	local sideToSpray;
-	if ((velocityVector - components.ParticleParts.LeftSpray.Position).Magnitude > (velocityVector - components.ParticleParts.RightSpray.Position).Magnitude) then
-		sideToSpray = "Left";
-	else
-		sideToSpray = "Right";
-	end
-	
-	local sprayValue : number = math.min(2 * sprayAngle * velocity, 70);
-	local deltaSpray : number = sprayValue - lastSprayValue;
-
-	--| If big enough respray is detected create a new emitter
-	if ((not sprayIncreasing) and (deltaSpray > math.pi / 8)) then
-		--print("new spray");
-		local newEmitter1 = components.ParticleParts.SprayEmitter1:Clone();
-		local newEmitter2 = components.ParticleParts.SprayEmitter2:Clone();
-
-		if (sideToSpray == "Left") then
-			newEmitter1.Parent = components.ParticleParts.LeftSpray;
-			newEmitter2.Parent = components.ParticleParts.LeftSpray;
-		else
-			newEmitter1.Parent = components.ParticleParts.RightSpray;
-			newEmitter2.Parent = components.ParticleParts.RightSpray;
-		end
-		
-	end
-
-	sprayIncreasing = (deltaSpray > 0);
-	
-	local spraySize = math.clamp(math.sqrt(sprayValue), 0, 10);
-
-	
-	-- * Find out why particles dont stop sometimes (not sure if this is 100% fixed)
-	
-	
-	for _, emitter : ParticleEmitter in pairs(components.ParticleParts[sideToSpray .. "Spray"]:GetChildren()) do
-		if (emitter:IsA("WeldConstraint")) then
-			continue;
-		end
-
-		if (sprayIncreasing) then
-			if (emitter.Enabled) then
-				emitter.Speed = NumberRange.new(sprayValue);
-				emitter.Size = NumberSequence.new(spraySize);
-			end
-		else
-			emitter.Enabled = false;
-			emitter:SetAttribute("timeout", emitter:GetAttribute("timeout") - deltaTime);
-
-			if (emitter:GetAttribute("timeout") <= 0) then
-				emitter:Destroy();
-			end
-		end
-	end
-
-
-	--| Assure particles stay off
-	local notSpraySide;
-	if (sideToSpray == "Left") then
-		notSpraySide = "Right";
-	else
-		notSpraySide = "Left";
-	end
-
-	for _, emitter : ParticleEmitter in pairs(components.ParticleParts[notSpraySide .. "Spray"]:GetChildren()) do
-		if (emitter:IsA("WeldConstraint")) then
-			continue;
-		end
-
-
-		emitter.Enabled = false;
-		emitter:SetAttribute("timeout", emitter:GetAttribute("timeout") - deltaTime);
-
-		if (emitter:GetAttribute("timeout") <= 0) then
-			emitter:Destroy();
-		end
-	end
-
-	lastSprayValue = sprayValue;
-end
 
 function updateMovement(deltaTime : number) : nil
 	--| Velocity
@@ -330,12 +222,11 @@ function updateMovement(deltaTime : number) : nil
 	keystrokesUI.KS2.Anchor.Position = UDim2.new((tiltVectorUnit.Y / 2) + 0.5, 0, (-tiltVectorUnit.X / 2) + 0.5);
 
 	--| Sled particles
-	updateParticles(deltaTime, velocity);
+	--updateParticles(deltaTime, velocity);
 end
 
 
 --| Sled physics manager
-
 
 function enableSledControls(sledModel : Model) : nil
 	--| Get components of the sled (important parts)
@@ -351,12 +242,20 @@ function enableSledControls(sledModel : Model) : nil
 
     --| Gyro strength
     components.PhysicsCore.Gyro.MaxTorque = 1000 * sledSettings.gyroStrength.Value;
-	
-	--| Sled colouring
-	for _, inst : Instance in pairs(sledModel.SledModel:GetChildren()) do
-		if (inst:GetAttribute("Colourable") == true) then
-			inst.Color = playerSledConfig.sledColour.Value;
-		end
+
+	local passengerSeat = sledModel.SledModel:FindFirstChild("Seat");
+	if passengerSeat then
+		passengerSeat:GetPropertyChangedSignal("Occupant"):Connect(function() : nil
+			if passengerSeat.Occupant then
+				for _, chassisPart in pairs(sledModel.Frame:GetChildren()) do
+					chassisPart.NoCollisionConstraint.Part1 = passengerSeat.Occupant.Parent.Torso;
+				end
+			else
+				for _, chassisPart in pairs(sledModel.Frame:GetChildren()) do
+					chassisPart.NoCollisionConstraint.Part1 = nil;
+				end
+			end
+		end);
 	end
 end
 
@@ -370,17 +269,19 @@ function disableSledControls() : nil
 	ContextActionService:UnbindAction("CameraModeSwitch");
 end
 
---| Enable / disable sled on seated change
+--| Enable / disable sled on seated change, and massless if on a passenger seat
 function onSeated(active : boolean, seatPart : BasePart) : nil
-
 	if (active) then
 		repeat task.wait() until seatPart;
 		if (seatPart:GetAttribute("Sled")) then
-			--print("Seated in sled")
+			sledding = true;
 			enableSledControls(seatPart.Parent.Parent);
 		end
 	else
-		disableSledControls();
+		if (sledding == true) then
+			sledding = false;
+			disableSledControls();
+		end
 	end
 end
 

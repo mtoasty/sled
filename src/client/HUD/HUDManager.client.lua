@@ -2,6 +2,7 @@ local TweenService : TweenService = game:GetService("TweenService");
 local UserInputService : UserInputService = game:GetService("UserInputService");
 local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
 local SoundService : SoundService = game:GetService("SoundService");
+local RunService : RunService = game:GetService("RunService");
 local Players : Players = game:GetService("Players");
 
 
@@ -9,25 +10,49 @@ local hudGUI : ScreenGui = script.Parent;
 local player = Players.LocalPlayer
 local playerData = player:WaitForChild("Data");
 
+--* Hover effects
+
+--| makes object button.Hover fade in and out when hovering
+function addHoverText(button : GuiButton) : nil
+    button.MouseEnter:Connect(function() : nil
+        TweenService:Create(button.Hover, TweenInfo.new(0.25), {["BackgroundTransparency"] = 0.25, ["TextTransparency"] = 0}):Play();
+    end);
+    
+    button.MouseLeave:Connect(function() : nil
+        TweenService:Create(button.Hover, TweenInfo.new(0.25), {["BackgroundTransparency"] = 1, ["TextTransparency"] = 1}):Play();
+    end);
+end
+
+function addHoverLight(button : GuiButton) : nil
+    button.MouseEnter:Connect(function() : nil
+        TweenService:Create(button, TweenInfo.new(0.25), {["BackgroundColor3"] = Color3.fromRGB(37, 48, 92)}):Play();
+    end);
+    
+    button.MouseLeave:Connect(function() : nil
+        TweenService:Create(button, TweenInfo.new(0.25), {["BackgroundColor3"] = Color3.fromRGB(18, 23, 43)}):Play();
+    end);
+
+    button.MouseButton1Click:Connect(function() : nil
+        button.BackgroundColor3 = Color3.fromRGB(37, 48, 92);
+        TweenService:Create(button, TweenInfo.new(0.25), {["BackgroundColor3"] = Color3.fromRGB(18, 23, 43)}):Play();
+    end);
+end
+
 for _, button : ImageButton in pairs(hudGUI.Buttons:GetChildren()) do
     if (button:IsA("ImageButton")) then
-        button.MouseEnter:Connect(function() : nil
-            TweenService:Create(button.Hover, TweenInfo.new(0.25), {["BackgroundTransparency"] = 0.25, ["TextTransparency"] = 0}):Play();
-        end);
-        
-        button.MouseLeave:Connect(function() : nil
-            TweenService:Create(button.Hover, TweenInfo.new(0.25), {["BackgroundTransparency"] = 1, ["TextTransparency"] = 1}):Play();
-        end);
+        addHoverLight(button);
+        addHoverText(button);
+    end
+end
 
-        button.MouseButton1Click:Connect(function() : nil
-            button.BackgroundColor3 = Color3.fromRGB(37, 48, 92);
-            TweenService:Create(button, TweenInfo.new(0.25), {["BackgroundColor3"] = Color3.fromRGB(18, 23, 43)}):Play();
-        end);
+for _, obj : GuiObject in pairs(hudGUI.Map:GetChildren()) do
+    if obj:IsA("GuiButton") then
+        addHoverLight(obj);
     end
 end
 
 
---| Spawn sled
+--* Spawn sled
 
 function spawnSled() : nil
     local sledName = playerData.sledConfig.sledType.Value;
@@ -37,7 +62,7 @@ end
 hudGUI.Buttons.Spawn.MouseButton1Click:Connect(spawnSled);
 
 
---| Settings
+--* Settings
 
 function toggleSettings() : nil
     hudGUI.Settings.Visible = not hudGUI.Settings.Visible;
@@ -46,15 +71,100 @@ end
 hudGUI.Buttons.Settings.MouseButton1Click:Connect(toggleSettings);
 
 
---| Map
+--* Map
+
+local camera = workspace.CurrentCamera;
+
+local mapParts = workspace:WaitForChild("MapParts");
+local curMapIndex = 0;
+local camHeartBeat : RBXScriptConnection = nil;
+
+function getMapInfos(index : number) : (string, BasePart, BasePart)
+    local camName : string = "";
+    local camPart : BasePart = nil;
+    local tpPart : BasePart = nil;
+
+    for _, part : BasePart in pairs(mapParts:GetChildren()) do
+        if (part:GetAttribute("CamIndex") == index) then
+            if (part:GetAttribute("CamPartType") == "cam") then
+                camPart = part;
+                elseif (part:GetAttribute("CamPartType") == "tp") then
+                camName = part:GetAttribute("CamName");
+                tpPart = part;
+            end
+        end
+    end
+
+    return camName, camPart, tpPart;
+end
+
+local curName, targetCamPart, targetTpPart : BasePart = getMapInfos(curMapIndex);
+
+function toggleMap() : nil
+    if hudGUI.Map.Visible == true then
+        hudGUI.Map.Visible = false;
+        
+        if camHeartBeat then
+            camHeartBeat:Disconnect();
+        end
+        
+        camera.CameraType = Enum.CameraType.Custom;
+
+        ReplicatedStorage.LocalEvents.POVCamOverride:Fire(false);
+    else
+        ReplicatedStorage.LocalEvents.POVCamOverride:Fire(true);
+        updateMapHUD();
+        hudGUI.Map.Visible = true;
+
+        camHeartBeat = RunService.Heartbeat:Connect(function() : nil
+            camera.CameraType = Enum.CameraType.Scriptable;
+            if targetCamPart and targetTpPart then
+                camera.CFrame = targetCamPart.CFrame;
+            end
+        end);
+    end
+end
+
+function updateMapHUD() : nil
+    curName, targetCamPart, targetTpPart = getMapInfos(curMapIndex);
+    hudGUI.Map.Location.Text = curName;
+end
+
+function moveLeft() : nil
+    if curMapIndex > 0 then
+        curMapIndex -= 1;
+    else
+        curMapIndex = #mapParts:GetChildren() / 2 - 1;
+    end
+
+    updateMapHUD();
+end
+
+function moveRight() : nil
+    if curMapIndex < #mapParts:GetChildren() / 2 - 1 then
+        curMapIndex += 1;
+    else
+        curMapIndex = 0;
+    end
+
+    updateMapHUD();
+end
+
+function teleport() : nil
+    player.Character.Humanoid.Sit = false;
+    player.Character:PivotTo(targetTpPart.CFrame);
+    toggleMap();
+end
+
+hudGUI.Buttons.Map.MouseButton1Click:Connect(toggleMap);
+hudGUI.Map.Left.MouseButton1Click:Connect(moveLeft);
+hudGUI.Map.Right.MouseButton1Click:Connect(moveRight);
+hudGUI.Map.Teleport.MouseButton1Click:Connect(teleport);
+
+--* Spectate
 
 
-
-
---| Spectate
-
-
---| Flashlight
+--* Flashlight
 
 function toggleFlashlight() : nil
     ReplicatedStorage.RemoteEvents.FlashlightToggle:FireServer();
@@ -63,7 +173,7 @@ end
 hudGUI.Buttons.Flashlight.MouseButton1Click:Connect(toggleFlashlight);
 
 
---| Keystrokes
+--* Keystrokes
 
 function toggleKeystrokes() : nil
     hudGUI.Keystrokes.Visible = not hudGUI.Keystrokes.Visible;
@@ -72,7 +182,7 @@ end
 hudGUI.Buttons.Keystrokes.MouseButton1Click:Connect(toggleKeystrokes);
 
 
---| Terminal
+--* Terminal
 
 function toggleTerminal() : nil
     hudGUI.Terminal.Visible = not hudGUI.Terminal.Visible;
@@ -80,7 +190,7 @@ end
 
 hudGUI.Buttons.Terminal.MouseButton1Click:Connect(toggleTerminal);
 
---| Keyboard shortcuts
+--* Keyboard shortcuts
 
 UserInputService.InputEnded:Connect(function(input : InputObject, gameProcessedEvent : boolean)
     if (not gameProcessedEvent) then
@@ -88,6 +198,10 @@ UserInputService.InputEnded:Connect(function(input : InputObject, gameProcessedE
             spawnSled();
         elseif (input.KeyCode == Enum.KeyCode.N) then
             toggleSettings();
+        elseif (input.KeyCode == Enum.KeyCode.B) then
+            --! spectate
+        elseif (input.KeyCode == Enum.KeyCode.M) then
+            toggleMap()
         elseif (input.KeyCode == Enum.KeyCode.L) then
             toggleFlashlight();
         elseif (input.KeyCode == Enum.KeyCode.Semicolon) then
@@ -99,7 +213,7 @@ UserInputService.InputEnded:Connect(function(input : InputObject, gameProcessedE
 end)
 
 
---| Level
+--* Level
 
 local playerLevel : number = playerData.playerstats.level;
 local playerXP : number = playerData.playerstats.xp;

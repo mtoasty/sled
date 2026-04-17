@@ -2,8 +2,60 @@ things to do:
 
 - FIX SLED SPAWNING
 - hover animation for time trial ui
-- xp to level / level bar
 - multiplayer
 - voice chat
 - emotes
 - console keybinds on ui?
+-- move particle physics to server script
+
+
+mahjong:
+
+add cards to other player's hands when they pick up
+fix the card inserting at first slot when picking up
+
+
+
+keep top 10 on the levels leaderboard
+{
+    [1] =  ▼  {
+        ["key"] = "384739244",
+        ["value"] = 34
+    },
+    [2] =  ▼  {
+        ["key"] = "3558027774",
+        ["value"] = 10
+    },
+    [3] =  ▼  {
+        ["key"] = "1478594947",
+        ["value"] = 10
+    },
+    [4] =  ▼  {
+        ["key"] = "188352930",
+        ["value"] = 9
+    },
+    [5] =  ▼  {
+        ["key"] = "1616996482",
+        ["value"] = 8
+    },
+    [6] =  ▼  {
+        ["key"] = "1521038848",
+        ["value"] = 8
+    },
+    [7] =  ▼  {
+        ["key"] = "1171983529",
+        ["value"] = 8
+    },
+    [8] =  ▼  {
+        ["key"] = "2850312382",
+        ["value"] = 7
+    },
+    [9] =  ▼  {
+        ["key"] = "358482023",
+        ["value"] = 6
+    },
+    [10] =  ▼  {
+        ["key"] = "3811650395",
+        ["value"] = 5
+    }
+}

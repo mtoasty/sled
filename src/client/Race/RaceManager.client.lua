@@ -371,13 +371,15 @@ local function onStatusEvent(eventType : string, data : {string}) : nil
         ttFinishHUD.BestDiff.Text = data.BestDiff;
         ttFinishHUD.WRDiff.Text = data.WRDiff;
 
-        if (string.sub(data.BestDiff, 1, 2) == "+") then
+        print(data.BestDiff)
+
+        if (string.sub(data.BestDiff, 1, 1) == "+") then
             ttFinishHUD.BestDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
         else
             ttFinishHUD.BestDiff.TextColor3 = Color3.fromRGB(200, 50, 50);
         end
 
-        if (string.sub(data.WRDiff, 1, 2) == "+") then
+        if (string.sub(data.WRDiff, 1, 1) == "+") then
             ttFinishHUD.WRDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
         else
             ttFinishHUD.WRDiff.TextColor3 = Color3.fromRGB(200, 50, 50);
