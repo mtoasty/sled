@@ -30,8 +30,6 @@ local function spawnSled(player : Player, nameOfSled : string) : nil
 	newSled.Parent = workspace;
 	newSled.Name = player.Name .. "'s sled";
 	newSled:PivotTo(character.HumanoidRootPart.CFrame);
-	newSled.Components.VehicleSeat:Sit(character:FindFirstChildOfClass("Humanoid"));
-	assignNetworkOwner(newSled, player);
 
 	--| Sled colouring
 	for _, inst : Instance in pairs(newSled.SledModel:GetChildren()) do
@@ -39,6 +37,10 @@ local function spawnSled(player : Player, nameOfSled : string) : nil
 			inst.Color = player.Data.sledConfig.sledColour.Value;
 		end
 	end
+
+	task.wait(0.1);
+	newSled:WaitForChild("Components").VehicleSeat:Sit(character:FindFirstChildOfClass("Humanoid"));
+	--assignNetworkOwner(newSled, player);
 end
 
 clientSledSpawnEvent.OnServerEvent:Connect(spawnSled);

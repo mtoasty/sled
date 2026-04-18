@@ -270,12 +270,12 @@ function disableSledControls() : nil
 end
 
 --| Enable / disable sled on seated change, and massless if on a passenger seat
-function onSeated(active : boolean, seatPart : BasePart) : nil
-	if (active) then
-		repeat task.wait() until seatPart;
-		if (seatPart:GetAttribute("Sled")) then
+function onSeated() : nil
+	if (humanoid.SeatPart) then
+		repeat task.wait() until humanoid.SeatPart:IsDescendantOf(workspace);
+		if (humanoid.SeatPart:GetAttribute("Sled")) then
 			sledding = true;
-			enableSledControls(seatPart.Parent.Parent);
+			enableSledControls(humanoid.SeatPart.Parent.Parent);
 		end
 	else
 		if (sledding == true) then
@@ -285,4 +285,4 @@ function onSeated(active : boolean, seatPart : BasePart) : nil
 	end
 end
 
-humanoid.Seated:Connect(onSeated);
+humanoid:GetPropertyChangedSignal("SeatPart"):Connect(onSeated);

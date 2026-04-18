@@ -1,3 +1,6 @@
+Hotfix 0.2.0a
+- Fixed an issue where sled controls wouldn't work, as a result of an engine bug
+
 Update 0.2.0
 
 HUD Revamp:
