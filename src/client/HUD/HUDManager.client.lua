@@ -4,6 +4,7 @@ local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage
 local SoundService : SoundService = game:GetService("SoundService");
 local RunService : RunService = game:GetService("RunService");
 local Players : Players = game:GetService("Players");
+local UserService : UserService = game:GetService("UserService");
 
 
 local hudGUI : ScreenGui = script.Parent;
@@ -161,8 +162,86 @@ hudGUI.Map.Left.MouseButton1Click:Connect(moveLeft);
 hudGUI.Map.Right.MouseButton1Click:Connect(moveRight);
 hudGUI.Map.Teleport.MouseButton1Click:Connect(teleport);
 
+
 --* Spectate
 
+local spectating = false;
+
+function spectate(p : Player) : nil
+    print("spectating " .. p.Name);
+    if not spectating then
+        ReplicatedStorage.LocalEvents.POVCamOverride:Fire(true);
+        spectating = true;
+    end
+
+    local char = p.Character or p.CharacterAdded:Wait();
+    camera.CameraSubject = char:FindFirstChildWhichIsA("Humanoid");
+end
+
+function stopSpectating() : nil
+    camera.CameraSubject = player.Character:FindFirstChildWhichIsA("Humanoid");
+    ReplicatedStorage.LocalEvents.POVCamOverride:Fire(false);
+    spectating = false;
+end
+
+function checkEmpty() : nil
+    if #Players:GetPlayers() == 1 then
+        hudGUI.Spectate.Container._NoPlayers.Size = UDim2.new(1, 0, 0.2, 0)
+    end
+end
+
+function addSpecButton(p : Player) : nil
+    if hudGUI.Spectate.Container._NoPlayers.Size == UDim2.new(1, 0, 0.2, 0) then
+        hudGUI.Spectate.Container._NoPlayers.Size = UDim2.new(1, 0, 0, 0)
+    end
+
+    local newButton : TextButton = hudGUI.Spectate.Container._Template:Clone();
+    newButton.Name = p.Name;
+    newButton.Parent = hudGUI.Spectate.Container;
+    newButton.Text = p.Name;
+    newButton.Size = UDim2.new(1, 0, 0.2, 0);
+
+    newButton.MouseButton1Click:Connect(function() : nil
+        spectate(p);
+    end);
+
+    local userInfo : table = nil;
+    local success, err = pcall(function() : nil
+        userInfo = UserService:GetUserInfosByUserIdsAsync({p.UserId});
+    end);
+
+    if success and userInfo[1].DisplayName then
+        newButton.Text = userInfo[1].DisplayName;
+    else
+        warn("Could not get and assign UserInfos for player " .. p.Name);
+        warn("Associated error: " .. tostring(err));
+    end
+
+    addHoverLight(newButton);
+end
+
+function removeSpecButton(p : Player) : nil
+    if p == player then return; end
+    hudGUI.Spectate.Container:FindFirstChild(p.Name):Destroy();
+
+    checkEmpty();
+end
+
+function toggleSpectate() : nil
+    hudGUI.Spectate.Visible = not hudGUI.Spectate.Visible;
+end
+
+for _, p in pairs(Players:GetPlayers()) do
+    if p == player then continue; end
+    addSpecButton(p);
+end
+
+addHoverLight(hudGUI.Spectate.Stop);
+
+Players.PlayerAdded:Connect(addSpecButton);
+Players.PlayerRemoving:Connect(removeSpecButton);
+hudGUI.Spectate.Stop.MouseButton1Click:Connect(stopSpectating)
+hudGUI.Buttons.Spectate.MouseButton1Click:Connect(toggleSpectate);
 
 --* Flashlight
 
@@ -199,9 +278,9 @@ UserInputService.InputEnded:Connect(function(input : InputObject, gameProcessedE
         elseif (input.KeyCode == Enum.KeyCode.N) then
             toggleSettings();
         elseif (input.KeyCode == Enum.KeyCode.B) then
-            --! spectate
+            toggleSpectate();
         elseif (input.KeyCode == Enum.KeyCode.M) then
-            toggleMap()
+            toggleMap();
         elseif (input.KeyCode == Enum.KeyCode.L) then
             toggleFlashlight();
         elseif (input.KeyCode == Enum.KeyCode.Semicolon) then
