@@ -23,3 +23,16 @@ end
 Players.PlayerAdded:Connect(function(player: Player)
 	player.CharacterAdded:Connect(onCharacterAdded);
 end);
+
+function detectSledAdded(child : Instance) : nil
+	if child:GetAttribute("Sled") and child:IsA("Model") then
+		print("Adding group")
+		for _, descendant in pairs(child:GetDescendants()) do
+			if descendant:IsA("BasePart") then
+				descendant.CollisionGroup = "Sleds";
+			end
+		end
+	end
+end
+
+workspace.ChildAdded:Connect(detectSledAdded);

@@ -1,5 +1,6 @@
 local ReplicatedStorage : ReplicatedStorage = game:GetService("ReplicatedStorage");
 local ServerStorage : ServerStorage = game:GetService("ServerStorage");
+local BadgeService : BadgeService = game:GetService("BadgeService");
 
 local TimeTrial : table = require(ReplicatedStorage:WaitForChild("Modules").Race.TimeTrial);
 local Stopwatch : table = require(ReplicatedStorage.Modules.Race.Stopwatch);
@@ -10,7 +11,6 @@ local startEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.Start;
 local stopwatchEvent : UnreliableRemoteEvent = ReplicatedStorage.RemoteEvents.Race.Stopwatch;
 local statusChangeEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.StatusChange;
 local multiplayerEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.MultiplayerEvent;
-local tpEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.Teleport;
 
 local leaderboardFetch : BindableFunction = ServerStorage.ServerEvents.LeaderboardFetch;
 
@@ -105,6 +105,7 @@ local function timeTrialComplete(player: Player, raceID : string, finalTime : nu
     if finalTime < (thisTrialRatings.Gold - 5) then
         xp += ttInfo.Difficulty * 250;
         results.Rating = "SPEED DEMON";
+        BadgeService:AwardBadgeAsync(player.UserId, 2127560958);
     elseif finalTime < thisTrialRatings.Gold then
         xp += ttInfo.Difficulty * 100;
         results.Rating = "Gold";

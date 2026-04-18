@@ -1,0 +1,312 @@
+Update 0.2.0
+
+HUD Revamp:
+- Revamped sled spawning
+- Revamped settings: not fully functional, removed old settings
+- Revamped spectating: revised ui
+- Revamped map and added three new locations: Bunny Hill, The Peak, and Ragnarok Access (names subject to change)
+- Revamped flashlight: no more levels, server synced
+- Revamped keystrokes: no more clashing keybinds, and keystrokes for tilt inputs
+- Revamped terminal: refreshed ui and tweaked functionality
+- Updated HUD and loading screen for a cleaner, new design
+
+Time trial revamp:
+- Completely redesigned time trials
+- Time trial rank times have changed, and are likely to change in the future for balance
+- New start and finish UI
+- New UI-integrated leaderboard
+- Physical leaderboards now store the correct, legacy records
+- Added new disqualification screen from which you can teleport back to start
+- XP awards have been changed, only reflecting rank and trial difficulty
+
+Sled customization:
+- Completely redesigned the sled shop UI
+- New editable stats for sleds: gyro strength, pitch/roll multipliers, steer angle, steer speed, yaw strength (some are wip)
+- Players can now choose the colour of their sled, if applicable, with an advanced colour picker
+
+Datastore rework:
+- Completely reworked datastore for improved safety and compatibility
+- Levels and XP will be reset as the XP/Level curve has been changed (Legacy level leaderboard remains)
+- Time trial times have been reset because of new time trial system and sled physics
+- Cosmetic sleds like Currents and Santa's sleighs are preseved along with moons
+- Game should no longer get stuck on the loading screen
+
+Time Rework:
+- Changed the system for calculating atmosphere conditions
+- Added a clock
+- Time is now settable by admins (instead of just changing speed)
+
+Fixes:
+- Players and their sleds can no longer collide with each other
+- Fixed many issues involving resetting
+- Fixed issues regarding teleporting: teleporting is now seamless even if seated
+- The dual sled no longer is affected by the physics of the passenger
+
+Changes:
+- Fixed and balanced sound region volumes
+- Reworked random jumpscares
+- Some new trails
+- Work in progress Mahjong table
+- Removed experimental player list
+- Sleds now have particle sprays
+- Added level up sound
+- Many small bugfixes/cleanup
+
+Coming in the future:
+- Racing time trials with multiple Players
+- Full settings
+- Full mobile/controller support
+- Tutorial
+- More ways to earn XP
+- Sledding sounds, music, ambient sounds
+- New physical leaderboards for new stats
+
+Report any bugs to #bug-reports, thank you all for waiting for this update!
+
+Update 0.1.1
+- New experimental sled chassis!!!!
+- very work in progress, expect further updates to the sled
+
+UPDATE v0.1
+SLED (v3) has officially entered an open beta phase!! The game is in a functional and stable state and will be updated at a slower pace. Feel free to share the game for others and submit bug reports in ⁠bug-reports and other feedback in ⁠sled-feedback  Thanks to all of the alpha testers for helping us make this game great <3
+
+Update 0.0.13c
+- Added floral mountain
+
+Patch 0.0.13b
+- Fixed secret sleds tab not showing up
+- Fixed race system not giving you speed demon
+- Changes to Cold Blooded and Ether
+- Changed Cupid's Line rank times
+
+Patch 0.0.13a
+- Sort of fixed atmosphere not coming back
+
+Update 0.0.13
+- Reworked racing system and gui
+- Added 2 new races: "King WZRD" and "Forever"
+- Fixed racing timer to be more accurate*
+- Fixed moons not colllecting
+- Fixed leaderboard not updating if player leveled up
+- Added a couple more trails + terrain
+- Small script reworks
+
+Patch 0.0.12a
+- Fixed player leaderboard
+- Blue night now has 100% chance of occuring
+
+Update 0.0.12
+- Added tons of new trails and terrain
+- Fixed sledding animations
+- Enabled streaming and removed render distance system for better performance
+- Fixed loading screen (mostly)
+- Added new player leaderboard (wip)
+- Added rare blue night (1/15)
+- Tweaked and reworked some scripts
+- Small bug fixes
+
+Update 0.0.11c
+- added new trails (eastgrove)
+- potentially fixed race issues
+
+Update 0.0.11b
+- Added loading time in loading screen
+
+Patch 0.0.11a
+- changed cable sag system to server instead of client to reduce lag
+
+Update 0.0.11 (Major Update)
+
+New:
+- Added tons of new trails
+- Added sledding animations
+- Added map teleport
+- Added spectating
+- Added new settings, which now save
+- Added Sled Airport
+- Added Cliffs, Beginner Hill areas
+- Added Ominous Traveller
+- Added variable weather (cloudyness/fogginess)
+
+Changed:
+- Adjusted race times
+- Speed Demon achievement changed to 5 seconds under gold time (from half of gold time)
+- Reworked chairlift system with new model and cable sag
+- Reworked datastore
+- Reworked leaderboards
+- Reworked time trials with better timing system (server side)
+- Equipping a new sled will no longer close the menu, and will give you a notification
+- Replaced most click detectors with proximity prompts
+- Tweaking lighting and environment
+- Made night time a little brighter
+
+Fixed:
+- Fixed not being able to change sled type
+- Supposedly fixed not sitting when starting time trial
+- Fixed flashlight system
+- Fixed flipping system
+- Fixed Moon system
+- Fixed UI sizing to fit all devices
+- Reduced unwanted yaw rotation by sleds in midair + flip
+
+
+
+Update 0.0.10d (patch)
+- fixed not being able to switch sled type
+- made it so you cannot see the admin sled tab if you are not admin
+
+Update 0.0.10c (patch)
+- fixed chairlift getting stuck on the way up
+
+Update 0.0.10b
+- remade render distance (slightly laggy when loading)
+- record shop woo
+
+Update 0.0.10a
+- fixed bug where your hud would disappear after dying
+
+Update 0.0.10
+-Added Chairlift
+-Added experimental weather (still in progress)
+
+
+
+Patch 0.0.9a
+- Fixed leaderboard not updating your position if your position has been changed by someone else getting a better score than you
+
+Update 0.0.9 (minor)
+- Updated leaderboard system to be more efficient
+- leaderboard now shows your position
+- System may be buggy, expect lots of bugs
+
+
+
+Patch 0.0.8c
+- reverted leaderboard code to hopefully fix it
+- sled now despawns when you get off or if you do not get on within 5 seconds
+
+Patch 0.0.8b
+- fixed pure mud leaderboard clashing with cupid leaderboard
+- fixed level color not switching
+
+Update 0.0.8a (content)
+- added 4 new trails: The Chute, God Crack, Disciples, and Celebration Station
+- new chairlift top
+- new time trial: Pure Mud on God Crack trail
+- few wip trails
+
+Update 0.0.8
+- Tweaked Sled code to have more precise control on a joystick
+- Changed some sled top speeds and turn angles to balance sleds
+- Reworked GUI
+- Added Keystrokes
+- Added Flip button but it is not yet working
+
+
+
+Patch 0.0.7b
+- Changed game to R6
+
+Patch 0.0.7a
+- Fixed XP bar going backwards
+- Supposedly prevented user from dying in void
+- Fixed leaderboard ranking glitching because player has time of 0
+- Fixed not being able to open time trial menu if you completed that time trial
+
+Update 0.0.7 (Major Update)
+
+New:
+- Added 2 Time Trials: MIXPEED ACTION, Cupid's Line
+- Added Time Trial Global Leaderboards
+- Added XP Levelling system along with an XP bar
+- Added SPEED DEMON Badge
+- Added 3 New Trails: Stereo Love, Clair de Lune, Villain Virus
+- Finished terrain in some locations
+- Added Path at trailhead
+- Added kicking system to kick people with no authorized access
+- Fixed Rocket sled booster having collision
+
+Changed:
+- Sled now spawns directly above the player
+- Changed all GUIS to have rounded corners
+- Redesigned Sled Selection menu
+- Retextured all snow from sand to snow
+
+Known Bugs:
+- Dying may cause atmosphere to disappear
+- Dying will cause render distance system to fail (unlimited still works)
+
+
+
+Update 0.0.6c (content)
+- big stick finished
+- new terrain + trails
+
+Update 0.0.6b (admin content)
+- admin/developer panel added with three commands:
+  -time set/lock
+  -tp to player
+  -kick player
+
+Update 0.0.6a (minor content)
+- few more trees
+- Settings added (graphics: shadows, tree render distance)
+- fixed "Layered Accessories JSON is invalid! (x5000)"
+- fixed rocket sled because boosting didnt actually work
+- fixed atmosphere bug because it wasnt working either
+
+Update 0.0.6 (minor content)
+- new trail sections
+- new town 
+- more trees
+- rocket sled update (shift to boost)
+- moons system fixed (bug)
+- flashlight fixed on first join (bug)
+- fixed atmosphere not working when died to void (bug)
+
+
+
+Update 0.0.5a (minor change)
+- Lighting rework for better colors and more realistic atmosphere
+- background mountains
+
+Update 0.0.5  (Large Update)
+- New Lighting
+- Daycycle
+- Flashlight (Press L)
+- Snowo emits physical light
+- Moons system ???
+- Ominous Traveler Coming Soon
+
+
+
+Update 0.0.4
+- Added more secrets
+- Improved trail hub
+- Bunch'o more WIP trails
+
+
+
+Update 0.0.3a
+- Gyro Fix
+- Starts of 2 trails
+
+Update 0.0.3
+- Slight sled gyro tweak
+- new trailhead
+- finished 3 trails
+- ???
+
+
+
+Update 0.0.2 
+- NEW CHASSIS
+- Couple New Trail Sections
+- Datastore added: Sled type now saves
+
+
+
+Update 0.0.1
+- New Trail: Rain
+- Shvip's Shack
+- ???
