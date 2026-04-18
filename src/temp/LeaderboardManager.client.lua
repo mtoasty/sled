@@ -30,7 +30,7 @@ local function createSample(player: Player)
 
 	leaderboardSizeChanged();
 
-	local level = player.sledstats.Level or "-";
+	local level = player.playerstats.level or "-";
 	if level ~= "-" then
 		level:GetPropertyChangedSignal("Value"):Connect(function()
 			clonedSample.Level.Text = level.Value;

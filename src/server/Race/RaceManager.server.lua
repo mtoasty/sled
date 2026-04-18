@@ -10,6 +10,7 @@ local startEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.Start;
 local stopwatchEvent : UnreliableRemoteEvent = ReplicatedStorage.RemoteEvents.Race.Stopwatch;
 local statusChangeEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.StatusChange;
 local multiplayerEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.MultiplayerEvent;
+local tpEvent : RemoteEvent = ReplicatedStorage.RemoteEvents.Race.Teleport;
 
 local leaderboardFetch : BindableFunction = ServerStorage.ServerEvents.LeaderboardFetch;
 
@@ -225,6 +226,5 @@ local function handleServerEvent(player : Player, raceID : string, party : {Play
         beginRace({player}, raceID);
     end
 end
-
 
 startEvent.OnServerEvent:Connect(handleServerEvent);

@@ -151,6 +151,7 @@ local returnToStartPart : BasePart = nil;
 local sled : Model = nil;
 
 local racing : boolean = false;
+local curRaceId : string = nil;
 
 local raceHUD : Frame = script.Parent.Parent.RaceHUD;
 local buttonsHUD : Frame = script.Parent.Parent.Buttons;
@@ -206,23 +207,6 @@ local function revealCheckpoint(checkpointNumber : number) : nil
     end
 end
 
-local function tpLastCheckpoint(actionName : string | GuiButton, inputState : Enum.UserInputState, inputObject : InputObject)
-    if typeof(actionName) ~= "string" or inputState == Enum.UserInputState.Begin then
-        sled.Components.Lock.Enabled = true;
-        sled.Components.RotLock.Enabled = true;
-
-        if curCheckpoint == 0 then
-            player.Character:PivotTo(returnToStartPart.CFrame);
-        else
-            player.Character:PivotTo(checkpointFolder:FindFirstChild(tostring(curCheckpoint)).Hitbox.CFrame * CFrame.Angles(0, -math.rad(90), 0));
-        end
-        
-        task.wait(0.5);
-        sled.Components.Lock.Enabled = false;
-        sled.Components.RotLock.Enabled = false;
-    end
-end
-
 local function raceStart() : nil
 
     stopwatchConnection = stopwatchEvent.OnClientEvent:Connect(function(timeType : string, timeValue : number) : nil
@@ -241,20 +225,6 @@ local function raceStart() : nil
     checkpointConnection = checkpointEvent.OnClientEvent:Connect(function(checkpointNumber) : nil
         revealCheckpoint(checkpointNumber);
     end);
-
-    sled = workspace:WaitForChild(player.Name .. "'s sled");
-
-    repeat task.wait() until racing == true;
-
-    ContextActionService:BindAction("TPLastCheckpoint", tpLastCheckpoint, false, Enum.KeyCode.R);
-    tpLastConnection = raceHUD.TPLastCheckpoint.MouseButton1Click:Connect(tpLastCheckpoint);
-    
-    raceHUD.TPLastCheckpoint.Visible = true;
-    TweenService:Create(
-        raceHUD.TPLastCheckpoint,
-        baseTweenInfo,
-        {["TextTransparency"] = 0, ["BackgroundTransparency"] = 0.25}
-    ):Play();
 end
 
 local function raceInit(raceID : string, party : {Player}?) : nil
@@ -305,9 +275,6 @@ local function raceCleanup(multiplayer : boolean) : nil
     stopwatchConnection = nil;
     checkpointConnection:Disconnect();
     checkpointConnection = nil;
-    tpLastConnection:Disconnect();
-    tpLastConnection = nil;
-    sled = nil;
     racing = false;
 
     ContextActionService:UnbindAction("TPLastCheckpoint");
@@ -337,15 +304,6 @@ local function raceCleanup(multiplayer : boolean) : nil
             {["AnchorPoint"] = Vector2.new(1, 0.5)}
         ):Play();
     end
-
-    TweenService:Create(
-        raceHUD.TPLastCheckpoint,
-        baseTweenInfo,
-        {["TextTransparency"] = 0, ["BackgroundTransparency"] = 0.25}
-    ):Play();
-
-    task.wait(0.5);
-    raceHUD.TPLastCheckpoint.Visible = false;
 end
 
 local function playerBackToStart() : nil
@@ -371,18 +329,16 @@ local function onStatusEvent(eventType : string, data : {string}) : nil
         ttFinishHUD.BestDiff.Text = data.BestDiff;
         ttFinishHUD.WRDiff.Text = data.WRDiff;
 
-        print(data.BestDiff)
-
         if (string.sub(data.BestDiff, 1, 1) == "+") then
-            ttFinishHUD.BestDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
-        else
             ttFinishHUD.BestDiff.TextColor3 = Color3.fromRGB(200, 50, 50);
+        else
+            ttFinishHUD.BestDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
         end
 
         if (string.sub(data.WRDiff, 1, 1) == "+") then
-            ttFinishHUD.WRDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
-        else
             ttFinishHUD.WRDiff.TextColor3 = Color3.fromRGB(200, 50, 50);
+        else
+            ttFinishHUD.WRDiff.TextColor3 = Color3.fromRGB(63, 253, 114);
         end
 
         if data.Best == "World Record!" then
@@ -443,17 +399,3 @@ end);
 
 startEvent.OnClientEvent:Connect(raceInit);
 statusChangeEvent.OnClientEvent:Connect(onStatusEvent);
-
-
-
---[[
-
-gradient effects
-
-local EasyVisuals = require(game.ReplicatedStorage.Modules.UI.EasyVisuals);
-local Gradient = EasyVisuals.Gradient.new(script.Parent, myColorSequence, 0);
--- Then we can use the gradient to apply it to an object
-Gradient:SetOffsetSpeed(0.5, 1)
-print(Gradient.IsPaused);
-
-]]
