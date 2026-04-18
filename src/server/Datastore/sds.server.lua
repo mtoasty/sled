@@ -49,16 +49,18 @@ function onPlayerAdded(player : Player | number) : nil
             serverSessionCache[player.UserId] = playerDataFolder;
 
         else
+            --| Old data found, levels will be reset
             print("transferring data");
+            
             --| Transfer existing data
             local playerDataPackage = DataPackage.new();
 
             --| Core stats
-            playerDataPackage.playerstats.level = data.sledstats.Level;
-            playerDataPackage.playerstats.xp = data.sledstats.xp;
+            playerDataPackage.playerstats.level = 1;
+            playerDataPackage.playerstats.xp = 0;
 
             --| Sled type and unlocked moon sleds
-            playerDataPackage.sledConfig.sledType = data.sledstats.SledType;
+            playerDataPackage.sledConfig.sledType = "Storm";
             playerDataPackage.sledConfig.cosmetics.Currents = data.sledstats.Currents;
             playerDataPackage.sledConfig.cosmetics.SantasSleigh = data.sledstats.santasSleigh;
 
@@ -96,6 +98,7 @@ function onPlayerAdded(player : Player | number) : nil
 
             --| Add to cache
             serverSessionCache[player.UserId] = playerDataFolder;
+            
         end
     else
         local playerDataPackage = DataPackage.new();

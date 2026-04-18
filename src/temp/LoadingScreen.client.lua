@@ -65,9 +65,7 @@ TweenService:Create(loadingScreen.UI.LoadingBar.Fill, TweenInfo.new(0.2, Enum.Ea
 task.wait(1.5);
 
 
-playerGui.customizeGUI.Enabled = true;
 playerGui.ominousGUI.Enabled = true;
-playerGui.raceGUI.Enabled = true;
 
 TweenService:Create(loadingScreen.Image, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {["ImageTransparency"] = 1}):Play();
 TweenService:Create(loadingScreen.UI.LoadingBar, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {["BackgroundTransparency"] = 1}):Play();
