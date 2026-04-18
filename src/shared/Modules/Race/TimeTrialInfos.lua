@@ -6,8 +6,8 @@ local TimeTrialInfos = {
         ["Route"] = "Stereo Love > Modern Love",
 
         ["Times"] = {
-            ["Gold"] = 30.0,
-            ["Silver"] = 35.0,
+            ["Gold"] = 32.5,
+            ["Silver"] = 37.5,
             ["Bronze"] = 45.0,
             ["Limit"] = 60.0
         }
@@ -20,10 +20,10 @@ local TimeTrialInfos = {
         ["Route"] = "Villain Virus",
 
         ["Times"] = {
-            ["Gold"] = 21.5,
-            ["Silver"] = 25.0,
-            ["Bronze"] = 30.0,
-            ["Limit"] = 35.0
+            ["Gold"] = 23.5,
+            ["Silver"] = 30.0,
+            ["Bronze"] = 35.0,
+            ["Limit"] = 45.0
         }
     },
 
@@ -62,10 +62,10 @@ local TimeTrialInfos = {
         ["Route"] = "2007",
 
         ["Times"] = {
-            ["Gold"] = 200,
-            ["Silver"] = 275,
-            ["Bronze"] = 350,
-            ["Limit"] = 450
+            ["Gold"] = 20.0,
+            ["Silver"] = 27.5,
+            ["Bronze"] = 35.0,
+            ["Limit"] = 45.0
         }
     }
 };

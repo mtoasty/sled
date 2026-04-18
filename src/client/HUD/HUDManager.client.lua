@@ -285,8 +285,8 @@ UserInputService.InputEnded:Connect(function(input : InputObject, gameProcessedE
             toggleFlashlight();
         elseif (input.KeyCode == Enum.KeyCode.Semicolon) then
             toggleKeystrokes();
-        elseif (input.KeyCode == Enum.KeyCode.BackSlash) then
-            toggleTerminal();
+        --elseif (input.KeyCode == Enum.KeyCode.BackSlash) then
+            --toggleTerminal();
         end
     end
 end)
@@ -332,6 +332,7 @@ local function levelChanged() : nil
     tweenXPBar(newXP / xpRequirement(newLevel));
     levelUI.Level.Text = "Level " .. newLevel;
     levelUI.XP.Text = newXP .. "/" .. xpRequirement(newLevel);
+    currentLevel = newLevel;
 end
 
 playerLevel:GetPropertyChangedSignal("Value"):Connect(levelChanged);

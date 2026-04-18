@@ -1,3 +1,17 @@
+Hotfix 0.2.0c
+- Fixed sled controls breaking when resetting
+- Fixed XP bar leveling back from initial level
+- Fixed XP bar not detecting XP changes
+- Fixed "forever" time trial rank times
+- Adjusted some time trial times to make "SPEED DEMON" times possible
+
+
+Hotfix 0.2.0b
+- Fixed issues with sled not spawning
+- Fixed time trial leaderboard times being overlapped
+- Fixed time trial leaderboard times being in the opposite order
+- Fixed the game rewarding decimal XP values
+
 Hotfix 0.2.0a
 - Fixed an issue where sled controls wouldn't work, as a result of an engine bug
 

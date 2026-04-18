@@ -36,7 +36,6 @@ local sledSettings = {
     ["gyroStrength"] = playerSledConfig.gyroStrength
 };
 
-
 --| Camera managing
 
 local cameraInUse = false;
