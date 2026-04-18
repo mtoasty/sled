@@ -17,9 +17,9 @@ local function spawnSled(player : Player, nameOfSled : string) : nil
 	local curSled = workspace:FindFirstChild(player.Name.."'s sled");
 
 	if curSled then
-		local seatWeld : WeldConstraint = curSled.Components:FindFirstChildOfClass("VehicleSeat"):FindFirstChild("SeatWeld");
-		if seatWeld then
-			seatWeld:Destroy();
+		local seat : VehicleSeat = curSled.Components:FindFirstChildOfClass("VehicleSeat");
+		if seat and seat.Occupant then
+			seat.Occupant.Sit = false;
 		end
 		curSled:Destroy();
 		task.wait(0.1);

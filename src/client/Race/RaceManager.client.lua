@@ -78,6 +78,7 @@ local function loadUI(raceData : table) : nil
     --| Clear ui first
 
     for _, child : Frame in ipairs(raceUI.TimeTrial.Leaderboard.Container:GetChildren()) do
+        if child:IsA("UIListLayout") then continue; end
         child:Destroy();
     end
 

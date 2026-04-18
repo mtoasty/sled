@@ -127,6 +127,8 @@ local function timeTrialComplete(player: Player, raceID : string, finalTime : nu
         end
     end
 
+    xp = math.floor(xp);
+
     results.XP = tostring(xp) .. " XP";
 
     player.Data.playerstats.xp.Value = player.Data.playerstats.xp.Value + xp;

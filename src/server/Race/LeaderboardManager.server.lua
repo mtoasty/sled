@@ -89,7 +89,7 @@ local function invoked(raceID : string, raw : boolean?) : table
     if (timeSinceLastFetch >= fetchCooldown) then
         fetchTimes[raceID] = time();
         
-        local isAscending : boolean = false;
+        local isAscending : boolean = true;
         local pageSize : number = 10;
         
         cachedData[raceID] = datastores[raceID]:GetSortedAsync(isAscending, pageSize):GetCurrentPage();
